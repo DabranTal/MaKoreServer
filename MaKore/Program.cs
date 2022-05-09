@@ -1,4 +1,10 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using MaKore.Data;
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<MaKoreContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MaKoreContext") ?? throw new InvalidOperationException("Connection string 'MaKoreContext' not found.")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -18,6 +24,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Ratings}/{action=Index}/{id?}");
 
 app.Run();

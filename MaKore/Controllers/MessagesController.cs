@@ -7,9 +7,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
+using MaKore.JsonClasses;
 
 namespace MaKore.Controllers
 {
+
+    [ApiController]
+    // ???????????????????????????????????????????
+    [Route("api/contacts/{id}/messages")]
     public class MessagesController : Controller
     {
         private readonly MaKoreContext _context;
@@ -20,134 +25,78 @@ namespace MaKore.Controllers
         }
 
         // GET: Messages
-        public async Task<IActionResult> Index()
+        [HttpGet("{id2?}")]
+        public async Task<IActionResult> GetAllMessages(string id, int id2)
         {
-            return View(await _context.Messages.ToListAsync());
+            string name = "Matan";
+            //string name = HttpContext.Session.GetString("username");
+
+            if (id2 != 0)
+            {
+                var q = from message in _context.Messages
+                                        where message.Id == id2
+                                        select message;
+                Message mess = q.First();
+
+                bool sent;
+
+                if (mess.getSenderFromMessage() == id) { sent = true; } else { sent = false; }
+
+                return Json(new JsonMessage() { Content = mess.getContentFromMessage(), Created = Message.getTime(), Id = mess.Id, Sent = sent });
+            }
+            //var messages = await _context.Messages.ToListAsync();
+            var qu = from conversations in _context.Conversations
+                           where conversations.User.UserName == name && conversations.RemoteUser.UserName == id
+                           select conversations.Messages.ToList();
+            List<Message> messages = qu.First();
+
+            var messagesList = new List<JsonMessage>();
+
+            foreach (Message message in messages)
+            {
+                string sender = message.getSenderFromMessage();
+                string content = message.getContentFromMessage();
+                string time = message.Time;
+                int Id = message.Id;
+
+                bool sent;
+                // ????????????????????????????????
+                if (sender == name) { sent = true; } else { sent = false; }
+
+                messagesList.Add(new JsonMessage() { Content = content, Id = Id, Sent = sent, Created = time }); 
+            }
+
+            return Json(messagesList);
+        }
+
+        // POST: Messages
+        [HttpPost, ActionName("messages")]
+        public async Task<IActionResult> SetMessageContent(string id, [Bind("content")] string content)
+        {
+            string username = HttpContext.Session.GetString("username");
+
+            var conversation = (Conversation)   from conv in _context.Conversations
+                                                where conv.User.UserName == username && conv.RemoteUser.UserName == id
+                                                select conv;
+
+            string newContent = username + ":" + content;
+
+            conversation.Messages.Add(new Message() { Content = newContent, Id = conversation.getNextId(), Time = Message.getTime() });
+
+            // ??????????????????????????????????????????
+            return StatusCode(201);    // 201
         }
 
         // GET: Messages/Details/5
-        public async Task<IActionResult> Details(int? id)
+        [HttpPut, ActionName("messages")]
+        public async Task<IActionResult> RemoveMessage(string id, int? id2, [Bind("content")] string content)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var message = await _context.Messages
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (message == null)
-            {
-                return NotFound();
-            }
-
-            return View(message);
-        }
-
-        // GET: Messages/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Messages/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Content,Time")] Message message)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(message);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(message);
-        }
-
-        // GET: Messages/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var message = await _context.Messages.FindAsync(id);
-            if (message == null)
-            {
-                return NotFound();
-            }
-            return View(message);
-        }
-
-        // POST: Messages/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Content,Time")] Message message)
-        {
-            if (id != message.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(message);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!MessageExists(message.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(message);
-        }
-
-        // GET: Messages/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var message = await _context.Messages
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (message == null)
-            {
-                return NotFound();
-            }
-
-            return View(message);
-        }
-
-        // POST: Messages/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var message = await _context.Messages.FindAsync(id);
-            _context.Messages.Remove(message);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool MessageExists(int id)
-        {
-            return _context.Messages.Any(e => e.Id == id);
+            Message mess = (Message)from message in _context.Messages
+                                    where message.Id == id2
+                                    select message;
+            _context.Messages.Remove(mess);
+            _context.SaveChanges();
+            return NoContent();    //204
         }
     }
 }

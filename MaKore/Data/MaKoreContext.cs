@@ -24,12 +24,17 @@ using MaKore.Models;
            .HasOne(b => b.Conversation)
            .WithOne(i => i.RemoteUser)
            .HasForeignKey<Conversation>(b => b.RemoteUserId);
+
+        modelBuilder.Entity<Conversation>()
+           .HasMany(b => b.Messages)
+           .WithOne(i => i.Conversation)
+           .HasForeignKey(m => m.ConversationId);
     }
 
 
     public DbSet<User> Users { get; set; }
     public DbSet<Message> Messages { get; set; }
-    public DbSet<Conversation> Convesations { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
     public DbSet<RemoteUser> RemoteUsers { get; set; }
 
 }

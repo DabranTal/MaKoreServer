@@ -38,7 +38,7 @@ namespace MaKore.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Convesations",
+                name: "Conversations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -48,15 +48,15 @@ namespace MaKore.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Convesations", x => x.Id);
+                    table.PrimaryKey("PK_Conversations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Convesations_RemoteUsers_RemoteUserId",
+                        name: "FK_Conversations_RemoteUsers_RemoteUserId",
                         column: x => x.RemoteUserId,
                         principalTable: "RemoteUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Convesations_Users_UserName",
+                        name: "FK_Conversations_Users_UserName",
                         column: x => x.UserName,
                         principalTable: "Users",
                         principalColumn: "UserName",
@@ -71,29 +71,28 @@ namespace MaKore.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Time = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ToUserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FromUserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ConversationId = table.Column<int>(type: "int", nullable: true)
+                    ConversationId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Messages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Messages_Convesations_ConversationId",
+                        name: "FK_Messages_Conversations_ConversationId",
                         column: x => x.ConversationId,
-                        principalTable: "Convesations",
-                        principalColumn: "Id");
+                        principalTable: "Conversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Convesations_RemoteUserId",
-                table: "Convesations",
+                name: "IX_Conversations_RemoteUserId",
+                table: "Conversations",
                 column: "RemoteUserId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Convesations_UserName",
-                table: "Convesations",
+                name: "IX_Conversations_UserName",
+                table: "Conversations",
                 column: "UserName");
 
             migrationBuilder.CreateIndex(
@@ -108,7 +107,7 @@ namespace MaKore.Migrations
                 name: "Messages");
 
             migrationBuilder.DropTable(
-                name: "Convesations");
+                name: "Conversations");
 
             migrationBuilder.DropTable(
                 name: "RemoteUsers");

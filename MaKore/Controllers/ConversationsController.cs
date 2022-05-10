@@ -7,9 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using MaKore.JsonClasses;
 
 namespace MaKore.Controllers
 {
+
+    [ApiController]
+    [Route("api")]
     public class ConversationsController : Controller
     {
         private readonly MaKoreContext _context;
@@ -17,137 +23,135 @@ namespace MaKore.Controllers
         public ConversationsController(MaKoreContext context)
         {
             _context = context;
+
+            User u = new User()
+           {
+                UserName = "Matan",
+                NickName = "Tani",
+                ConversationList = new List<Conversation>(),
+                Password = "aaa"
+            };
+            Message msg = new Message() { Content = "Matan:Hello", Conversation = null, ConversationId = 1, Time = Message.getTime() };
+     
+            Conversation conv = new Conversation() { RemoteUser = null, Messages = new List<Message>() { msg}, RemoteUserId = 1, User = u };
+            msg.Conversation = conv;
+            RemoteUser ru = new RemoteUser() { UserName = "Coral", NickName = "Corali", Conversation = conv, Server = "remote", ConversationId = 1 };
+            u.ConversationList.Add(conv);
+            conv.RemoteUser = ru;
+            _context.Add(msg);
+            _context.Add(u);
+            _context.Add(ru);
+            _context.Add(conv);
+            
+            
+            _context.SaveChanges();
         }
 
-        // GET: Conversations
-        public async Task<IActionResult> Index()
+        // GET: /contacts + /contacts/:id
+        [HttpGet("contacts/{id?}")]
+        public async Task<IActionResult> GettAllContacts(string? id)
         {
-            return View(await _context.Convesations.ToListAsync());
-        }
-
-        // GET: Conversations/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
+            string name = "Matan";
+            //string name = HttpContext.Session.GetString("username");
+            
+            if (id != null)
             {
-                return NotFound();
+                var q = from conversations in _context.Conversations
+                        where conversations.RemoteUser.UserName == id && conversations.User.UserName == name
+                        select conversations.RemoteUser;
+
+                RemoteUser remoteUser = q.First();
+
+                Message lastMessage = getLastMessage(remoteUser, name);
+                string content = lastMessage.getContentFromMessage();
+
+                return Json(new JsonUser()
+                {
+                    Id = remoteUser.UserName,
+                    Name = remoteUser.NickName,
+                    Server = remoteUser.Server,
+                    LastDate = lastMessage.Time,
+                    Last = content
+                });
             }
 
-            var conversation = await _context.Convesations
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (conversation == null)
-            {
-                return NotFound();
-            }
 
-            return View(conversation);
+            //string name = HttpContext.Session.GetString("username");
+
+            var contacts = from conversations in _context.Conversations
+                           where conversations.User.UserName == name
+                           select conversations.RemoteUser.NickName;
+
+            return Json(contacts);
+            //return View(await _context.Conversations.ToListAsync());
         }
 
-        // GET: Conversations/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
 
-        // POST: Conversations/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id")] Conversation conversation)
+        public async Task<IActionResult> Index([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(conversation);
+                remoteUser.Id = _context.RemoteUsers.Max(x => x.Id) + 1;
+                remoteUser.Conversation = new Conversation();
+                _context.RemoteUsers.Add(remoteUser);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                //return RedirectToAction(nameof(Index));
+                //return View("good");
+                return Json(new EmptyResult());
             }
-            return View(conversation);
+            return View("not");
         }
 
-        // GET: Conversations/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+
+        // PUT: /contacts/id
+        [HttpPut, ActionName("contacts")]
+        public async Task<IActionResult> Put(string contact, [Bind("UserName, NickName, Server")] RemoteUser ru)
         {
-            if (id == null)
+            if (ru == null)
             {
-                return NotFound();
+                return Json(new EmptyResult());
             }
 
-            var conversation = await _context.Convesations.FindAsync(id);
-            if (conversation == null)
-            {
-                return NotFound();
-            }
-            return View(conversation);
+            RemoteUser remoteUser = (RemoteUser) from remote in _context.RemoteUsers
+                                                 where remote.UserName == contact && remote.Server == ru.Server
+                                                 select remote;
+            remoteUser.UserName = ru.UserName;
+            remoteUser.NickName = ru.NickName;
+            return NoContent();    //204
         }
 
-        // POST: Conversations/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id")] Conversation conversation)
+
+        // DELETE: /contacts/id
+        [HttpDelete, ActionName("contacts")]
+        public async Task<IActionResult> Delete(string contact)
         {
-            if (id != conversation.Id)
+            if (contact == null)
             {
-                return NotFound();
+                return Json(new EmptyResult());
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(conversation);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ConversationExists(conversation.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(conversation);
+            string name = HttpContext.Session.GetString("username");
+
+            var remoteUser = from conversations in _context.Conversations
+                             where conversations.RemoteUser.UserName == contact && conversations.User.UserName == name
+                             select conversations.RemoteUser;
+
+            _context.RemoteUsers.Remove(remoteUser.First());
+            _context.SaveChanges();
+            return NoContent();    //204
         }
 
-        // GET: Conversations/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+
+        private Message getLastMessage(RemoteUser ru, string name)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var q = from conv in _context.Conversations.Include(m => m.Messages)
+                             where conv.User.UserName == name && conv.RemoteUser == ru
+                             select conv;
 
-            var conversation = await _context.Convesations
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (conversation == null)
-            {
-                return NotFound();
-            }
-
-            return View(conversation);
-        }
-
-        // POST: Conversations/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var conversation = await _context.Convesations.FindAsync(id);
-            _context.Convesations.Remove(conversation);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool ConversationExists(int id)
-        {
-            return _context.Convesations.Any(e => e.Id == id);
+            Conversation c = q.First();
+            return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();
         }
     }
 }

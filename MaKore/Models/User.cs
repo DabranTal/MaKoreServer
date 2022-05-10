@@ -6,8 +6,12 @@ namespace MaKore.Models
     {
         [Key]
         public string UserName { get; set; }
-        public string Password { get; set; }    
+
+        [Required]
+        public string Password { get; set; }
+        
         public string NickName { get; set; }
+
         public List<Conversation> ConversationList { get; set; }  
         
     }

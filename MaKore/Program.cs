@@ -8,6 +8,9 @@ builder.Services.AddDbContext<MaKoreContext>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+
+builder.Services.AddSession(options => options.IdleTimeout = TimeSpan.FromSeconds(10));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -18,11 +21,13 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Users}/{action=Index}/{id?}");
+    pattern: "{controller=Users}/{action=Register}/{id?}");
+
 
 app.Run();

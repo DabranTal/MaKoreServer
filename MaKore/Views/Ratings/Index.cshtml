@@ -19,7 +19,7 @@
                 <input name="query"/>
                 <input type="submit" value="Search"/>
             </form>
-            <p class="create"><a asp-action="Create">New Comment</a></p>
+            <p class="create"><a asp-action="Create">New Feedback</a></p>
         </div>
         @foreach (var item in Model) {
         <a class="link" asp-action="Details" asp-route-id="@item.ID">

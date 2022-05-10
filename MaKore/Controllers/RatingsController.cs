@@ -42,6 +42,12 @@ namespace MaKore.Controllers
 
             return View(rating);
         }
+        [HttpPost]
+        public async Task<IActionResult> Search(string query)
+        {
+            var search = _context.Rating.Where(rating => rating.Name.Contains(query)); 
+            return View(await search.ToListAsync());
+        }
 
         // GET: Ratings/Create
         public IActionResult Create()

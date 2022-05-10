@@ -14,12 +14,8 @@
 <body>
     <section id="container">
         <div class="head">
-            <span class="first">Our Rating @string.Format("{0:0.0}",avg)/5</span>
-            <form class="search" asp-action="Search">
-                <input name="query"/>
-                <input type="submit" value="Search"/>
-            </form>
-            <p class="create"><a asp-action="Create">New Comment</a></p>
+            <span class="first">The result is:</span>
+            <p class="create"><a asp-action="Index">Back to Rating screen</a></p>
         </div>
         @foreach (var item in Model) {
         <a class="link" asp-action="Details" asp-route-id="@item.ID">

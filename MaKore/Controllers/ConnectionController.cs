@@ -38,7 +38,7 @@ namespace MaKore.Controllers
 
         [HttpPost]
         //public IActionResult Post(string username, string passowrd)
-        public IActionResult Post([Bind("UserName,NickName,Passowrd")] User user)
+        public IActionResult Post([Bind("UserName,Passowrd")] User user)
         {
 
             //bool h = MaKore.Controllers.UsersController.IsExistUser(username, password);

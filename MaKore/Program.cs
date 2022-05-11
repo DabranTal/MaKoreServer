@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using MaKore.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<MaKoreContext>(options =>
@@ -8,6 +7,9 @@ builder.Services.AddDbContext<MaKoreContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+
+builder.Services.AddSession(options => options.IdleTimeout = TimeSpan.FromSeconds(10));
 
 var app = builder.Build();
 
@@ -19,11 +21,14 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Ratings}/{action=Index}/{id?}");
+
+
 
 app.Run();

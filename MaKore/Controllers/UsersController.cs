@@ -9,17 +9,23 @@ using Microsoft.EntityFrameworkCore;
 using MaKore.Data;
 using MaKore.Models;
 
+
+
 namespace MaKore.Controllers
 {
+
+    [ApiController]
+    [Route("api/cocccntacts/{action}")]
     public class UsersController : Controller
     {
+
         private readonly MaKoreContext _context;
 
         public UsersController(MaKoreContext context)
         {
             _context = context;
         }
-
+          
         // GET: Users
         public async Task<IActionResult> Index()
         {
@@ -45,7 +51,7 @@ namespace MaKore.Controllers
         }
 
         // GET: Users/Create
-        public IActionResult Create()
+        public IActionResult Register()
         {
             return View();
         }
@@ -53,15 +59,22 @@ namespace MaKore.Controllers
         // POST: Users/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [HttpPost, ActionName("Register")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Nickname,Password")] User user)
+        public async Task<IActionResult> Register([Bind("UserName,Password,NickName")] User user)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                var isTakenUserName = from userName in _context.Users.Where(m => m.UserName == user.UserName) select userName;
+                if (isTakenUserName.Any()) {
+                    return View("Error");
+                } else {
+                    HttpContext.Session.SetString("username", isTakenUserName.First().UserName);
+                    _context.Add(user);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
             }
             return View(user);
         }
@@ -74,23 +87,23 @@ namespace MaKore.Controllers
                 return NotFound();
             }
 
-            var user = await _context.User.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
+
+
+        // GET: Users/Create
+        public IActionResult Login()
+        {
+            return View();
+        }
             return View(user);
         }
 
-        // POST: Users/Edit/5
+        // POST: Users/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [HttpPost, ActionName("login")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Name,Nickname,Password")] User user)
+        public async Task<IActionResult> Login([Bind("UserName,Password")] User user)
         {
-            if (id != user.Name)
-            {
                 return NotFound();
             }
 
@@ -117,19 +130,19 @@ namespace MaKore.Controllers
             return View(user);
         }
 
-        // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(string id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+                var isRegistered = _context.Users.Where(m => m.UserName == user.UserName && m.Password == user.Password);
+                if (isRegistered.Any())
+                {
+                    // we save info and when the user refreshes we know its him
+                    HttpContext.Session.SetString("username", isRegistered.First().UserName);
+                    // rediret with react
+                    return View("yes");
+                } else
+                {
+                    return View("no");
+                }
 
-            var user = await _context.User
-                .FirstOrDefaultAsync(m => m.Name == id);
-            if (user == null)
-            {
-                return NotFound();
+
             }
 
             return View(user);

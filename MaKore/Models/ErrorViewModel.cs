@@ -7,3 +7,4 @@ namespace MaKore.Models
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
 }
+

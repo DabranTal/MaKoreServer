@@ -5,10 +5,14 @@ namespace MaKore.Models
     public class User
     {
         [Key]
-        public string? Name { get; set; }
-        public string? Nickname { get; set; }
+        public string UserName { get; set; }
+
         [Required]
-        [DataType(DataType.Password)]
-        public string? Password { get; set; }
+        public string Password { get; set; }
+        
+        public string NickName { get; set; }
+
+        public List<Conversation> ConversationList { get; set; }  
+        
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using MaKore.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
@@ -56,7 +55,6 @@ app.UseStaticFiles();
 
 
 app.UseRouting();
-app.UseSession();
 
 app.UseAuthorization();
 

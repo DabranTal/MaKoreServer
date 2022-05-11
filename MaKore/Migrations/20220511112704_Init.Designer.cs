@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MaKore.Migrations
 {
     [DbContext(typeof(MaKoreContext))]
-    [Migration("20220511104743_init")]
-    partial class init
+    [Migration("20220511112704_Init")]
+    partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

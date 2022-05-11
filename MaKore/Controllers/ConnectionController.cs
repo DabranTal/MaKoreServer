@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using MaKore.Data;
 using MaKore.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -34,12 +33,12 @@ namespace MaKore.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            return Json(await _context.User.ToListAsync());
+            return Json(await _context.Users.ToListAsync());
         }
 
         [HttpPost]
         //public IActionResult Post(string username, string passowrd)
-        public IActionResult Post([Bind("Name,Nickname,Passowrd")] User user)
+        public IActionResult Post([Bind("UserName,NickName,Passowrd")] User user)
         {
 
             //bool h = MaKore.Controllers.UsersController.IsExistUser(username, password);
@@ -47,19 +46,19 @@ namespace MaKore.Controllers
             //validate username and password
             if (true)
             {
-                string username = user.Name;
+                string username = user.UserName;
                 string password = user.Password;
 
-                var claims = new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, _configuration["JWTParams:Subject"]),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Sub,DateTime.UtcNow.ToString()),
-                    new Claim("Name", username)
-                };
 
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTParams:SecretKey"]));
                 var mac = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+                var claims = new[]
+{
+                    new Claim(JwtRegisteredClaimNames.Sub, _configuration["JWTParams:Subject"]),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Sub,DateTime.UtcNow.ToString()),
+                    new Claim("UserName", username)
+                };
                 var token = new JwtSecurityToken(
                     _configuration["JWTParams:Issuer"],
                     _configuration["JWTParams:Audience"],

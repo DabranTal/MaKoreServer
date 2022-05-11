@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
-using MaKore.Services;
+
 
 
 namespace MaKore.Controllers

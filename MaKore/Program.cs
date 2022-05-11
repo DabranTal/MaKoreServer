@@ -62,7 +62,8 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Users}/{action=Register}/{id?}");
+    pattern: "{controller=Ratings}/{action=Index}/{id?}");
+
 
 
 app.Run();

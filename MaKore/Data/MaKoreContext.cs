@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
 
-namespace MaKore.Data
+public class MaKoreContext : DbContext
 {
-    public class MaKoreContext : DbContext
+    public MaKoreContext(DbContextOptions<MaKoreContext> options)
+        : base(options)
     {
-        public MaKoreContext (DbContextOptions<MaKoreContext> options)
-            : base(options)
-        {
-        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,5 +36,6 @@ namespace MaKore.Data
     public DbSet<Message> Messages { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
     public DbSet<RemoteUser> RemoteUsers { get; set; }
+    public DbSet<Rating> Rating { get; set; }
 
 }

@@ -1,0 +1,52 @@
+﻿@model IEnumerable<MaKore.Models.Rating>
+@{
+    ViewData["Title"] = "Index";
+    double sum = 0, i = 0;
+    foreach(var rating in Model) {
+        sum += rating.Grade;
+        i++;
+    }
+    double avg = 0;
+    if(i != 0)
+      avg = sum / i;
+}
+<meta name="viewport" content="width=device-width, intial-scalse-1.0">
+<body>
+    <section id="container">
+        <div class="head">
+            <span class="first">Our Rating @string.Format("{0:0.0}",avg)/5</span>
+            <form class="search" asp-action="Search">
+                <input name="query"/>
+                <input type="submit" value="Search"/>
+            </form>
+            <p class="create"><a asp-action="Create">New Feedback</a></p>
+        </div>
+        @foreach (var item in Model) {
+        <a class="link" asp-action="Details" asp-route-id="@item.ID">
+        <div class="box-container">
+            <div class="box">
+                <div class="top">
+                    <div class="details">
+                        <div class="nameAndDate">
+                            <strong>@Html.DisplayFor(modelItem => item.Name)</strong>
+                            <span> @Html.DisplayFor(modelItem => item.Date)</span>
+                        </div>
+                    </div>
+                    <div class="rating">
+                        <i> @Html.DisplayFor(modelItem => item.Grade)/5</i>
+                    </div>
+                    <div>
+                     <a class="delete" asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                     </div>
+                </div>
+                 <a class="link" asp-action="Details" asp-route-id="@item.ID">
+                <div class="feedback">
+                    <p>@Html.DisplayFor(modelItem => item.Feedback)</p>
+                </div>
+                </a>
+            </div>
+        </div>
+        </a>
+        }
+    </section>
+</body>

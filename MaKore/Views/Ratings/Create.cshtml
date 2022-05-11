@@ -1,0 +1,49 @@
+﻿@model MaKore.Models.Rating
+
+@{
+    ViewData["Title"] = "Create";
+}
+<div class="container mt-4 shadow-lg" style="padding-top:50px;">
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <h2 class="text-white">Add your FeedBack</h2>
+            <p class="text-white">We would love to hear your thoughts, concerns or problem with anything
+                so we can improve!</p>
+            <hr>
+            <form asp-action="Create">
+               <div class="form-group mt-3 mb-3">
+                   <label  asp-for="Name" class="form-label">Name*</label>
+                   <input asp-for="Name" type="text" class="form-control " required="" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+               </div>
+               <div class="form-group mt-3 mb-3">
+                   <label asp-for="Grade" class="form-label">Grade*</label>
+                <select class="form-select" asp-for="Grade" aria-label="Default select example">
+                    <option selected>Select rating</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+               </div>
+               <div class="form-group mb-2">
+                <label asp-for="Feedback" class="form-label">FeedBack:</label>
+                <textarea rows="6" asp-for="Feedback" class="form-control"></textarea>
+                <span asp-validation-for="Feedback" class="text-danger"></span>
+                @Html.Hidden("Date", DateTime.Now)
+            </div>
+            <input type="submit" style="margin-bottom:10px;" value="Submit" class="btn btn-primary" />
+           </form>
+        </div>
+    </div>
+</div>
+
+<div>
+    <a style="font-size:large;" asp-action="Index">Back to Home page</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -36,20 +36,33 @@ namespace MaKore.Controllers
             return Json(await _context.Users.ToListAsync());
         }
 
+        private bool IsExistUser(string username, string password)
+        {
+            var isRegistered = _context.Users.Where(m => m.UserName == username && m.Password == password);
+            if (isRegistered.Any())
+            {
+                // rediret with react
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         [HttpPost]
         //public IActionResult Post(string username, string passowrd)
         public IActionResult Post([Bind("UserName,Passowrd")] User user)
         {
 
+            string username = user.UserName;
+            string password = user.Password;
+
             //bool h = MaKore.Controllers.UsersController.IsExistUser(username, password);
 
             //validate username and password
-            if (true)
+            if (IsExistUser(username, password))
             {
-                string username = user.UserName;
-                string password = user.Password;
-
-
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTParams:SecretKey"]));
                 var mac = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
                 var claims = new[]

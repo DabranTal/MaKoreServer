@@ -44,14 +44,14 @@ namespace MaKore.Controllers
             _context.Add(conv);
             
             
-            _context.SaveChanges();
+            //_context.SaveChanges();
         }
 
         // GET: /contacts + /contacts/:id
         [HttpGet("contacts/{id?}")]
         public async Task<IActionResult> GettAllContacts(string? id)
         {
-            string name = "Matan";
+            string name = "Ido";
             //string name = HttpContext.Session.GetString("username");
             
             if (id != null)
@@ -75,14 +75,36 @@ namespace MaKore.Controllers
                 });
             }
 
+            var q3 = from conversations in _context.Conversations
+                    where conversations.User.UserName == name
+                    select conversations.RemoteUser;
+            
+            List<JsonUser> users = new List<JsonUser>();
 
-            //string name = HttpContext.Session.GetString("username");
 
-            var contacts = from conversations in _context.Conversations
-                           where conversations.User.UserName == name
-                           select conversations.RemoteUser.NickName;
+            foreach (var r in q3)
+            {
 
-            return Json(contacts);
+                RemoteUser ru = r;
+
+                Message lm = getLastMessage(ru, name);
+                string c = lm.getContentFromMessage();
+
+                users.Add(
+                    new JsonUser()
+                    {
+                        Id = r.UserName,
+                        Name = r.NickName,
+                        Server = r.Server,
+                        LastDate = lm.Time,
+                        Last = c
+                    });
+            }
+            
+
+
+
+            return Json(users);
             //return View(await _context.Conversations.ToListAsync());
         }
 
@@ -150,8 +172,14 @@ namespace MaKore.Controllers
                              where conv.User.UserName == name && conv.RemoteUser == ru
                              select conv;
 
-            Conversation c = q.First();
-            return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();
+            if (q.Any())
+            {
+                Conversation c = q.First();
+                if (c.Messages.Count != 0)
+                    return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();                 
+            }
+            return null;
+
         }
     }
 }

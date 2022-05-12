@@ -44,7 +44,7 @@ namespace MaKore.Controllers
             _context.Add(conv);
             
             
-            _context.SaveChanges();
+           // _context.SaveChanges();
         }
 
         // GET: /contacts + /contacts/:id
@@ -70,8 +70,8 @@ namespace MaKore.Controllers
                     Id = remoteUser.UserName,
                     Name = remoteUser.NickName,
                     Server = remoteUser.Server,
-                    LastDate = lastMessage.Time,
-                    Last = content
+                    Last = content,
+                    LastDate = lastMessage.Time
                 });
             }
 

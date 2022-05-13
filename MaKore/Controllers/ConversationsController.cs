@@ -26,12 +26,12 @@ namespace MaKore.Controllers
 
             User u = new User()
            {
-                UserName = "Matan",
+                UserName = "Ido",
                 NickName = "Tani",
                 ConversationList = new List<Conversation>(),
                 Password = "aaa"
             };
-            Message msg = new Message() { Content = "Matan:Hello", Conversation = null, ConversationId = 1, Time = Message.getTime() };
+            Message msg = new Message() { Content = "Ido:Hello", Conversation = null, ConversationId = 1, Time = Message.getTime() };
      
             Conversation conv = new Conversation() { RemoteUser = null, Messages = new List<Message>() { msg}, RemoteUserId = 1, User = u };
             msg.Conversation = conv;

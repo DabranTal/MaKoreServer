@@ -117,6 +117,7 @@ namespace MaKore.Controllers
                 }
                 else
                 {
+                    user.ConversationList = new List<Conversation>();
                     _context.Add(user);
                     await _context.SaveChangesAsync();
                     string username = user.UserName;

@@ -31,65 +31,103 @@ namespace MaKore.Controllers
 
         // GET: /contacts + /contacts/:id
         [HttpGet("contacts/{id?}")]
-        public async Task<IActionResult> GettAllContacts(string? id)
+        public async Task<IActionResult> GetContacts(string? id)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
-            string name = UserNameFromJWT(authHeader, _configuration);
+            string userName = UserNameFromJWT(authHeader, _configuration);
             
-            if (id != null)
+            
+            // if we got a friend's id we return only it's details
+            if ((id != null) && (userName != null))
             {
                 var q = from conversations in _context.Conversations
-                        where conversations.RemoteUser.UserName == id && conversations.User.UserName == name
+                        where conversations.RemoteUser.UserName == id && conversations.User.UserName == userName
                         select conversations.RemoteUser;
 
-                RemoteUser remoteUser = q.First();
 
-                Message lastMessage = getLastMessage(remoteUser, name);
-                string content = lastMessage.getContentFromMessage();
-
-                return Json(new JsonUser()
+                if (q.Any()) 
                 {
-                    Id = remoteUser.UserName,
-                    Name = remoteUser.NickName,
-                    Server = remoteUser.Server,
-                    LastDate = lastMessage.Time,
-                    Last = content
-                });
+                    RemoteUser remoteUser = q.First();
+                    Message lastMessage = getLastMessage(remoteUser, userName);
+                    string content;
+                    string time;
+
+                    if (lastMessage != null)
+                    {
+                        content = lastMessage.getContentFromMessage();
+                        time = lastMessage.Time;
+                    } else
+                    {
+                        content = "";
+                        time = "";
+                    }
+
+
+                    return Json(new JsonUser()
+                    {
+                        Id = remoteUser.UserName,
+                        Name = remoteUser.NickName,
+                        Server = remoteUser.Server,
+                        LastDate = time,
+                        Last = content
+                    });
+                } else { return BadRequest(); }
             }
 
-            var q3 = from conversations in _context.Conversations
-                    where conversations.User.UserName == name
+            // we didn't get a friend's id. we return all of the user's friends
+            var qu = from conversations in _context.Conversations
+                    where conversations.User.UserName == userName
                     select conversations.RemoteUser;
             
-            List<JsonUser> users = new List<JsonUser>();
+            List<JsonUser> friends = new List<JsonUser>();
 
-
-            foreach (var r in q3)
+            // go over the user's friends
+            foreach (var r in qu)
             {
 
                 RemoteUser ru = r;
+                Message lm = getLastMessage(ru, userName);
+                string c;
+                string time;
 
-                Message lm = getLastMessage(ru, name);
-                string c = lm.getContentFromMessage();
+                if (lm != null)
+                {
+                    c = lm.getContentFromMessage();
+                    time = lm.Time;
+                } else
+                {
+                    c = "";
+                    time = "";
+                }
 
-                users.Add(
+
+                friends.Add(
                     new JsonUser()
                     {
                         Id = r.UserName,
                         Name = r.NickName,
                         Server = r.Server,
-                        LastDate = lm.Time,
+                        LastDate = time,
                         Last = c
                     });
             }
             
-
-
-
-            return Json(users);
-            //return View(await _context.Conversations.ToListAsync());
+            return Json(friends);
         }
+
+
+
+
+
+
+
+        /***********************************************************************************************************/
+
+
+
+
+
 
 
 
@@ -158,11 +196,10 @@ namespace MaKore.Controllers
             if (q.Any())
             {
                 Conversation c = q.First();
-                if (c.Messages.Count != 0)
+                if ((c != null) && (c.Messages.Count != 0))
                     return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();                 
             }
             return null;
-
         }
     }
 }

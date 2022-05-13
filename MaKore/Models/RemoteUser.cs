@@ -12,6 +12,5 @@ namespace MaKore.Models
 
         public int ConversationId { get; set; }
         public Conversation Conversation { get; set; }
-
     }
 }

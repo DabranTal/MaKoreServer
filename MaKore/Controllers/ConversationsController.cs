@@ -16,43 +16,26 @@ namespace MaKore.Controllers
 
     [ApiController]
     [Route("api")]
-    public class ConversationsController : Controller
+    public class ConversationsController : BaseController
     {
         private readonly MaKoreContext _context;
+        public IConfiguration _configuration;
 
-        public ConversationsController(MaKoreContext context)
+
+        public ConversationsController(MaKoreContext context, IConfiguration config)
         {
             _context = context;
-
-            User u = new User()
-           {
-                UserName = "Matan",
-                NickName = "Tani",
-                ConversationList = new List<Conversation>(),
-                Password = "aaa"
-            };
-            Message msg = new Message() { Content = "Matan:Hello", Conversation = null, ConversationId = 1, Time = Message.getTime() };
-     
-            Conversation conv = new Conversation() { RemoteUser = null, Messages = new List<Message>() { msg}, RemoteUserId = 1, User = u };
-            msg.Conversation = conv;
-            RemoteUser ru = new RemoteUser() { UserName = "Coral", NickName = "Corali", Conversation = conv, Server = "remote", ConversationId = 1 };
-            u.ConversationList.Add(conv);
-            conv.RemoteUser = ru;
-            _context.Add(msg);
-            _context.Add(u);
-            _context.Add(ru);
-            _context.Add(conv);
-            
-            
-            _context.SaveChanges();
+            _configuration = config;
+  
         }
 
         // GET: /contacts + /contacts/:id
         [HttpGet("contacts/{id?}")]
         public async Task<IActionResult> GettAllContacts(string? id)
         {
-            string name = "Matan";
-            //string name = HttpContext.Session.GetString("username");
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string name = UserNameFromJWT(authHeader, _configuration);
             
             if (id != null)
             {
@@ -75,14 +58,36 @@ namespace MaKore.Controllers
                 });
             }
 
+            var q3 = from conversations in _context.Conversations
+                    where conversations.User.UserName == name
+                    select conversations.RemoteUser;
+            
+            List<JsonUser> users = new List<JsonUser>();
 
-            //string name = HttpContext.Session.GetString("username");
 
-            var contacts = from conversations in _context.Conversations
-                           where conversations.User.UserName == name
-                           select conversations.RemoteUser.NickName;
+            foreach (var r in q3)
+            {
 
-            return Json(contacts);
+                RemoteUser ru = r;
+
+                Message lm = getLastMessage(ru, name);
+                string c = lm.getContentFromMessage();
+
+                users.Add(
+                    new JsonUser()
+                    {
+                        Id = r.UserName,
+                        Name = r.NickName,
+                        Server = r.Server,
+                        LastDate = lm.Time,
+                        Last = c
+                    });
+            }
+            
+
+
+
+            return Json(users);
             //return View(await _context.Conversations.ToListAsync());
         }
 
@@ -150,8 +155,14 @@ namespace MaKore.Controllers
                              where conv.User.UserName == name && conv.RemoteUser == ru
                              select conv;
 
-            Conversation c = q.First();
-            return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();
+            if (q.Any())
+            {
+                Conversation c = q.First();
+                if (c.Messages.Count != 0)
+                    return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();                 
+            }
+            return null;
+
         }
     }
 }

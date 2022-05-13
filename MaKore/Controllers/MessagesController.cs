@@ -28,7 +28,7 @@ namespace MaKore.Controllers
         [HttpGet("{id2?}")]
         public async Task<IActionResult> GetAllMessages(string id, int id2)
         {
-            string name = "Matan";
+            string name = "Ido";
             //string name = HttpContext.Session.GetString("username");
 
             if (id2 != 0)

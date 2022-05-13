@@ -110,7 +110,6 @@ namespace MaKore.Controllers
         {
             if (ModelState.IsValid)
             {
-
                 var isTakenUserName = from userName in _context.Users.Where(m => m.UserName == user.UserName) select userName;
                 if (isTakenUserName.Any())
                 {

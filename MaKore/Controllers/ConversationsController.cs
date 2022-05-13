@@ -16,11 +16,13 @@ namespace MaKore.Controllers
 
     [ApiController]
     [Route("api")]
-    public class ConversationsController : Controller
+    public class ConversationsController : BaseController
     {
         private readonly MaKoreContext _context;
+        public IConfiguration _configuration;
 
-        public ConversationsController(MaKoreContext context)
+
+        public ConversationsController(MaKoreContext context, IConfiguration config)
         {
             _context = context;
 
@@ -42,6 +44,8 @@ namespace MaKore.Controllers
             _context.Add(u);
             _context.Add(ru);
             _context.Add(conv);
+            
+            
             //_context.SaveChanges();
         }
 
@@ -49,8 +53,9 @@ namespace MaKore.Controllers
         [HttpGet("contacts/{id?}")]
         public async Task<IActionResult> GettAllContacts(string? id)
         {
-            string name = "Ido";
-            //string name = HttpContext.Session.GetString("username");
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string name = UserNameFromJWT(authHeader, _configuration);
             
             if (id != null)
             {

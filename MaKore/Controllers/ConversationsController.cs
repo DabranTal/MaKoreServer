@@ -25,38 +25,19 @@ namespace MaKore.Controllers
         public ConversationsController(MaKoreContext context, IConfiguration config)
         {
             _context = context;
-
-            User u = new User()
-           {
-                UserName = "Matan",
-                NickName = "Tani",
-                ConversationList = new List<Conversation>(),
-                Password = "aaa"
-            };
-            Message msg = new Message() { Content = "Matan:Hello", Conversation = null, ConversationId = 1, Time = Message.getTime() };
-     
-            Conversation conv = new Conversation() { RemoteUser = null, Messages = new List<Message>() { msg}, RemoteUserId = 1, User = u };
-            msg.Conversation = conv;
-            RemoteUser ru = new RemoteUser() { UserName = "Coral", NickName = "Corali", Conversation = conv, Server = "remote", ConversationId = 1 };
-            u.ConversationList.Add(conv);
-            conv.RemoteUser = ru;
-            _context.Add(msg);
-            _context.Add(u);
-            _context.Add(ru);
-            _context.Add(conv);
-            
-            
-            //_context.SaveChanges();
+            _configuration = config;
         }
 
         // GET: /contacts + /contacts/:id
         [HttpGet("contacts/{id?}")]
         public async Task<IActionResult> GettAllContacts(string? id)
         {
+            string name = "ido";
+            /*
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string name = UserNameFromJWT(authHeader, _configuration);
-            
+            */
             if (id != null)
             {
                 var q = from conversations in _context.Conversations

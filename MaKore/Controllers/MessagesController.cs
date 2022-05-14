@@ -13,23 +13,30 @@ namespace MaKore.Controllers
 {
 
     [ApiController]
-    // ???????????????????????????????????????????
-    [Route("api/contacts/{id}/messages")]
-    public class MessagesController : Controller
+    //[Route("api/contacts/{id}/messages")]
+    [Route("api/contacts/{id}/[action]")]
+
+    public class MessagesController : BaseController
     {
         private readonly MaKoreContext _context;
+        public IConfiguration _configuration;
 
-        public MessagesController(MaKoreContext context)
+        public MessagesController(MaKoreContext context, IConfiguration config)
         {
             _context = context;
+            _configuration = config;
         }
 
         // GET: Messages
+        //[HttpGet("{id2?}")]
         [HttpGet("{id2?}")]
+        [ActionName("messages")]
+
         public async Task<IActionResult> GetAllMessages(string id, int id2)
         {
-            string name = "Ido";
-            //string name = HttpContext.Session.GetString("username");
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string name = UserNameFromJWT(authHeader, _configuration);
 
             if (id2 != 0)
             {

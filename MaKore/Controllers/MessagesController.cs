@@ -34,8 +34,8 @@ namespace MaKore.Controllers
             if (id2 != 0)
             {
                 var q = from message in _context.Messages
-                                        where message.Id == id2
-                                        select message;
+                        where message.Id == id2
+                        select message;
                 Message mess = q.First();
 
                 bool sent;
@@ -46,8 +46,8 @@ namespace MaKore.Controllers
             }
             //var messages = await _context.Messages.ToListAsync();
             var qu = from conversations in _context.Conversations
-                           where conversations.User.UserName == name && conversations.RemoteUser.UserName == id
-                           select conversations.Messages.ToList();
+                     where conversations.User.UserName == name && conversations.RemoteUser.UserName == id
+                     select conversations.Messages.ToList();
             List<Message> messages = qu.First();
 
             var messagesList = new List<JsonMessage>();
@@ -63,7 +63,7 @@ namespace MaKore.Controllers
                 // ????????????????????????????????
                 if (sender == name) { sent = true; } else { sent = false; }
 
-                messagesList.Add(new JsonMessage() { Content = content, Id = Id, Sent = sent, Created = time }); 
+                messagesList.Add(new JsonMessage() { Content = content, Id = Id, Sent = sent, Created = time });
             }
 
             return Json(messagesList);
@@ -75,9 +75,9 @@ namespace MaKore.Controllers
         {
             string username = HttpContext.Session.GetString("username");
 
-            var conversation = (Conversation)   from conv in _context.Conversations
-                                                where conv.User.UserName == username && conv.RemoteUser.UserName == id
-                                                select conv;
+            var conversation = (Conversation)from conv in _context.Conversations
+                                             where conv.User.UserName == username && conv.RemoteUser.UserName == id
+                                             select conv;
 
             string newContent = username + ":" + content;
 

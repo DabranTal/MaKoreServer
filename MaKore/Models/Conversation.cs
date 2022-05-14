@@ -11,8 +11,6 @@ namespace MaKore.Models
 
         public int RemoteUserId { get; set; }
         public RemoteUser RemoteUser { get; set; }
-
-
         public int getNextId()
         {
             return Messages.Max(m => m.Id) + 1;

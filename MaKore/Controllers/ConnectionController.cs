@@ -12,7 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
+using MaKore.JsonClasses;
 
 namespace MaKore.Controllers
 {
@@ -103,6 +103,9 @@ namespace MaKore.Controllers
             }
         }
 
+
+
+
         [HttpPost]
         [ActionName("register")]
         //public IActionResult Post(string username, string passowrd)
@@ -117,6 +120,7 @@ namespace MaKore.Controllers
                 }
                 else
                 {
+                    user.ConversationList = new List<Conversation>();
                     _context.Add(user);
                     await _context.SaveChangesAsync();
                     string username = user.UserName;

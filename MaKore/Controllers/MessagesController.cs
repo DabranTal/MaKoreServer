@@ -9,6 +9,13 @@ using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
 using MaKore.JsonClasses;
 
+public class MyPayload
+{
+    [Newtonsoft.Json.JsonProperty("content")]
+    public string content { get; set; }
+}
+
+
 namespace MaKore.Controllers
 {
 
@@ -77,14 +84,21 @@ namespace MaKore.Controllers
         }
 
         // POST: Messages
-        [HttpPost, ActionName("messages")]
-        public async Task<IActionResult> SetMessageContent(string id, [Bind("content")] string content)
+        [HttpPost]
+        [ActionName("messages")]
+        public async Task<IActionResult> SetMessageContent(string id, [Bind("content")] MyPayload mpl)
         {
-            string username = HttpContext.Session.GetString("username");
 
-            var conversation = (Conversation)from conv in _context.Conversations
+
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string username = UserNameFromJWT(authHeader, _configuration);
+
+            string content =mpl.content;
+
+            var conversation = (Conversation)(from conv in _context.Conversations
                                              where conv.User.UserName == username && conv.RemoteUser.UserName == id
-                                             select conv;
+                                             select conv);
 
             string newContent = username + ":" + content;
 
@@ -98,9 +112,9 @@ namespace MaKore.Controllers
         [HttpPut, ActionName("messages")]
         public async Task<IActionResult> RemoveMessage(string id, int? id2, [Bind("content")] string content)
         {
-            Message mess = (Message)from message in _context.Messages
+            Message mess = (Message)(from message in _context.Messages
                                     where message.Id == id2
-                                    select message;
+                                    select message);
             _context.Messages.Remove(mess);
             _context.SaveChanges();
             return NoContent();    //204

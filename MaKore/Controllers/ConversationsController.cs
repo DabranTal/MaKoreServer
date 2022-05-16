@@ -143,8 +143,8 @@ namespace MaKore.Controllers
         }
 
 
-        [HttpPost]
-        public async Task<IActionResult> Index([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
+        [HttpPost("addConversation")]
+        public async Task<IActionResult> AddConversation([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
@@ -152,21 +152,40 @@ namespace MaKore.Controllers
 
             var q = from user in _context.Users where user.UserName == userName select user;
 
-            if (ModelState.IsValid)
+            if (q.Any())
             {
-                if (q.Any())
-                {
-                    User u = q.First();
-                    remoteUser.Conversation = new Conversation(u, remoteUser);
-                    _context.Add(remoteUser);
-                    _context.Add(remoteUser.Conversation);
-                    _context.SaveChanges();
-                    await _context.SaveChangesAsync();
-                    return StatusCode(201)
-                }
+                User u = q.First();
+                Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
+                _context.Add(conv);
+                remoteUser.Conversation = conv;
+                remoteUser.ConversationId = conv.Id;
+                _context.RemoteUsers.Add(remoteUser);
 
+
+
+                var q2 = from user in _context.Users where user.UserName == remoteUser.UserName select user;
+
+                if (q2.Any())
+                {
+                    User u1 = q2.First();
+                    RemoteUser ru = new RemoteUser()
+                    {
+                        UserName = userName,
+                        NickName = u.NickName,
+                        Server = "localhost:5018"
+                    };
+
+                    Conversation conv1 = new Conversation() { Messages = new List<Message>(), User = u1, RemoteUser = ru };
+                    _context.Add(conv1);
+                    ru.Conversation = conv1;
+                    ru.ConversationId = conv1.Id;
+                    _context.RemoteUsers.Add(ru);
+                }
+                await _context.SaveChangesAsync();
+                return StatusCode(201);
             }
             return BadRequest();
+
         }
 
 

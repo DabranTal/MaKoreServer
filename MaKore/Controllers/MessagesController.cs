@@ -96,15 +96,18 @@ namespace MaKore.Controllers
                     where conv.User.UserName == username && conv.RemoteUser.UserName == id
                     select conv;
 
+            string newContent;
+            newContent = username + ":" + message.Content;
+
+            string time = Message.getTime();
+
             if (q.Any())
             {
-                string newContent = username + ":" + message.Content;
-
                 Conversation conversation = q.First();
                 Message newMessage = new Message()
                 {
                     Content = newContent,
-                    Time = Message.getTime(),
+                    Time = time,
                     ConversationId = conversation.Id
                 };
                 
@@ -116,9 +119,43 @@ namespace MaKore.Controllers
                 conversation.Messages.Add(newMessage);
                 _context.Add(newMessage);
                 _context.SaveChanges();
+            }
+
+
+            var q2 = from user in _context.Users
+                     where user.UserName == id
+                     select user;
+
+            // the remote user is also our client (our user)
+            if (q2.Any())
+            {
+                var q3 = from conv in _context.Conversations
+                        where conv.User.UserName == id && conv.RemoteUser.UserName == username
+                        select conv;
+
+                if (q3.Any())
+                {
+                    Conversation contraConversation = q3.First();
+                    Message duplicatedMessage = new Message()
+                    {
+                        Content = newContent,
+                        Time = time,
+                        ConversationId = contraConversation.Id
+                    };
+
+                    if (contraConversation.Messages == null)
+                    {
+                        contraConversation.Messages = new List<Message>();
+                    }
+
+                    contraConversation.Messages.Add(duplicatedMessage);
+                    _context.Add(duplicatedMessage);
+                    _context.SaveChanges();
+                }
+
                 return StatusCode(201);
             }
-            return BadRequest();    // 201
+            return BadRequest();
         }
 
     

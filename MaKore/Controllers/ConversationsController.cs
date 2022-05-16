@@ -143,33 +143,30 @@ namespace MaKore.Controllers
         }
 
 
-
-
-
-
-        /***********************************************************************************************************/
-
-
-
-
-
-
-
-
         [HttpPost]
         public async Task<IActionResult> Index([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
         {
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+            var q = from user in _context.Users where user.UserName == userName select user;
+
             if (ModelState.IsValid)
             {
-                remoteUser.Id = _context.RemoteUsers.Max(x => x.Id) + 1;
-                remoteUser.Conversation = new Conversation();
-                _context.RemoteUsers.Add(remoteUser);
-                await _context.SaveChangesAsync();
-                //return RedirectToAction(nameof(Index));
-                //return View("good");
-                return Json(new EmptyResult());
+                if (q.Any())
+                {
+                    User u = q.First();
+                    remoteUser.Conversation = new Conversation(u, remoteUser);
+                    _context.Add(remoteUser);
+                    _context.Add(remoteUser.Conversation);
+                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
+                    return StatusCode(201)
+                }
+
             }
-            return View("not");
+            return BadRequest();
         }
 
 

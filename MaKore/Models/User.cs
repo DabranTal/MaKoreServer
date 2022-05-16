@@ -12,7 +12,8 @@ namespace MaKore.Models
         
         public string NickName { get; set; }
 
-        public List<Conversation> ConversationList { get; set; }  
-        
+        public List<Conversation> ConversationList { get; set; }
+
+
     }
 }

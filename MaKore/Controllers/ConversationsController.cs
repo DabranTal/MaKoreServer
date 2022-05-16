@@ -143,40 +143,30 @@ namespace MaKore.Controllers
 
         }
 
-        /*
-        // GET : /me
-        [HttpPost("add")]
-        public async Task<IActionResult> addConversation(Bind[""])
+
+
+        [HttpPost("addConversation")]
+        public async Task<IActionResult> AddConversation([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
-
-
-
-
-        }
-
-        */
-
-
-
-
-
-            [HttpPost]
-        public async Task<IActionResult> Index([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
-        {
             if (ModelState.IsValid)
             {
-                remoteUser.Id = _context.RemoteUsers.Max(x => x.Id) + 1;
-                remoteUser.Conversation = new Conversation();
-                _context.RemoteUsers.Add(remoteUser);
-                await _context.SaveChangesAsync();
-                //return RedirectToAction(nameof(Index));
-                //return View("good");
-                return Json(new EmptyResult());
+                var q = from user in _context.Users where user.UserName == userName select user;
+                if (q.Any())
+                {
+                    User u = q.First();
+                    Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
+                    _context.Add(conv);
+                    await _context.SaveChangesAsync();
+                    remoteUser.Conversation = conv;
+                    _context.RemoteUsers.Add(remoteUser);
+                    await _context.SaveChangesAsync();
+                    return StatusCode(201);
+                }
             }
-            return View("not");
+            return BadRequest();
         }
 
 

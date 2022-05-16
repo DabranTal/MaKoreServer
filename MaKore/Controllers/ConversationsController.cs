@@ -33,6 +33,7 @@ namespace MaKore.Controllers
         [HttpGet("contacts/{id?}")]
         public async Task<IActionResult> GetContacts(string? id)
         {
+
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
@@ -144,32 +145,29 @@ namespace MaKore.Controllers
 
 
 
-
-
-
-        /***********************************************************************************************************/
-
-
-
-
-
-
-
-
-        [HttpPost]
-        public async Task<IActionResult> Index([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
+        [HttpPost("addConversation")]
+        public async Task<IActionResult> AddConversation([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
         {
-            if (ModelState.IsValid)
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+            var q = from user in _context.Users where user.UserName == userName select user;
+            if (q.Any())
             {
-                remoteUser.Id = _context.RemoteUsers.Max(x => x.Id) + 1;
-                remoteUser.Conversation = new Conversation();
+                User u = q.First();
+
+                Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
+               // _context.Add(conv);
+                //await _context.SaveChangesAsync();
+                
+                remoteUser.Conversation = conv;
+                remoteUser.ConversationId = conv.Id;
                 _context.RemoteUsers.Add(remoteUser);
                 await _context.SaveChangesAsync();
-                //return RedirectToAction(nameof(Index));
-                //return View("good");
-                return Json(new EmptyResult());
+                
+                return StatusCode(201);
             }
-            return View("not");
+            return BadRequest();
         }
 
 

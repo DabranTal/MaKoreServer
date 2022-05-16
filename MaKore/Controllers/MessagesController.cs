@@ -62,6 +62,7 @@ namespace MaKore.Controllers
             var qu = from conversations in _context.Conversations
                      where conversations.User.UserName == name && conversations.RemoteUser.UserName == id
                      select conversations.Messages.ToList();
+
             List<Message> messages = qu.First();
 
             var messagesList = new List<JsonMessage>();
@@ -86,35 +87,50 @@ namespace MaKore.Controllers
         // POST: Messages
         [HttpPost]
         [ActionName("messages")]
-        public async Task<IActionResult> SetMessageContent(string id, [Bind("content")] MyPayload mpl)
+        public async Task<IActionResult> SetMessageContent(string id, [Bind("Id, Content, Created, Sent")] JsonMessage message)
         {
-
-
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string username = UserNameFromJWT(authHeader, _configuration);
 
-            string content =mpl.content;
+            var q = from conv in _context.Conversations
+                    where conv.User.UserName == username && conv.RemoteUser.UserName == id
+                    select conv;
 
-            var conversation = (Conversation)(from conv in _context.Conversations
-                                             where conv.User.UserName == username && conv.RemoteUser.UserName == id
-                                             select conv);
+            if (q.Any())
+            {
+                string newContent = username + ":" + message.Content;
 
-            string newContent = username + ":" + content;
+                Conversation conversation = q.First();
+                Message newMessage = new Message()
+                {
+                    Content = newContent,
+                    Time = Message.getTime(),
+                    ConversationId = conversation.Id
+                };
+                
+                if (conversation.Messages == null)
+                {
+                    conversation.Messages = new List<Message>();
+                }
 
-            conversation.Messages.Add(new Message() { Content = newContent, Id = conversation.getNextId(), Time = Message.getTime() });
-
-            // ??????????????????????????????????????????
-            return StatusCode(201);    // 201
+                conversation.Messages.Add(newMessage);
+                _context.Add(newMessage);
+                _context.SaveChanges();
+                return StatusCode(201);
+            }
+            return BadRequest();    // 201
         }
 
-        // GET: Messages/Details/5
-        [HttpPut, ActionName("messages")]
+    
+
+    // GET: Messages/Details/5
+    [HttpPut, ActionName("messages")]
         public async Task<IActionResult> RemoveMessage(string id, int? id2, [Bind("content")] string content)
         {
             Message mess = (Message)(from message in _context.Messages
-                                    where message.Id == id2
-                                    select message);
+                                     where message.Id == id2
+                                     select message);
             _context.Messages.Remove(mess);
             _context.SaveChanges();
             return NoContent();    //204

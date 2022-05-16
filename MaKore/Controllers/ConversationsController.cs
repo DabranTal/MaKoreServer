@@ -155,16 +155,13 @@ namespace MaKore.Controllers
             if (q.Any())
             {
                 User u = q.First();
-
                 Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
-               // _context.Add(conv);
-                //await _context.SaveChangesAsync();
-                
+                _context.Add(conv);
+                await _context.SaveChangesAsync();
                 remoteUser.Conversation = conv;
                 remoteUser.ConversationId = conv.Id;
                 _context.RemoteUsers.Add(remoteUser);
                 await _context.SaveChangesAsync();
-                
                 return StatusCode(201);
             }
             return BadRequest();

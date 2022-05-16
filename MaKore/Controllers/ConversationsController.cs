@@ -33,6 +33,7 @@ namespace MaKore.Controllers
         [HttpGet("contacts/{id?}")]
         public async Task<IActionResult> GetContacts(string? id)
         {
+
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
@@ -142,21 +143,27 @@ namespace MaKore.Controllers
 
         }
 
+        /*
+        // GET : /me
+        [HttpPost("add")]
+        public async Task<IActionResult> addConversation(Bind[""])
+        {
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+
+
+
+        }
+
+        */
 
 
 
 
 
-        /***********************************************************************************************************/
-
-
-
-
-
-
-
-
-        [HttpPost]
+            [HttpPost]
         public async Task<IActionResult> Index([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
         {
             if (ModelState.IsValid)

@@ -55,6 +55,7 @@ namespace MaKore.Controllers
             var qu = from conversations in _context.Conversations
                      where conversations.User.UserName == name && conversations.RemoteUser.UserName == id
                      select conversations.Messages.ToList();
+
             List<Message> messages = qu.First();
 
             var messagesList = new List<JsonMessage>();

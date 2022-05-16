@@ -11,7 +11,6 @@ using MaKore.JsonClasses;
 
 namespace MaKore.Controllers
 {
-
     [ApiController]
     [Route("api")]
     public class UsersController : BaseController
@@ -34,16 +33,19 @@ namespace MaKore.Controllers
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
+
             var q = from users in _context.Users
                     select users;
+
             List<JsonUser> sendUsers = new List<JsonUser>();
-            foreach (var user in q)
-                sendUsers.Add(new JsonUser() { Id = user.UserName, Name = user.NickName, Server = "home", Last = "", LastDate = "" });
-            return Json(sendUsers);
 
+            if (q.Any())
+            {
+                foreach (var user in q)
+                    sendUsers.Add(new JsonUser() { Id = user.UserName, Name = user.NickName, Server = "home", Last = "", LastDate = "" });
+                return Json(sendUsers);
+            }
+            return BadRequest();
         }
-
-
-
     }
 }

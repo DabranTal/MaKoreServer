@@ -34,11 +34,9 @@ namespace MaKore.Controllers
             _configuration = config;
         }
 
-        // GET: Messages
-        //[HttpGet("{id2?}")]
+        // GET: contacts/{id}/messages/{id2?}
         [HttpGet("{id2?}")]
         [ActionName("messages")]
-
         public async Task<IActionResult> GetAllMessages(string id, int id2)
         {
             string authHeader = Request.Headers["Authorization"];
@@ -50,43 +48,51 @@ namespace MaKore.Controllers
                 var q = from message in _context.Messages
                         where message.Id == id2
                         select message;
-                Message mess = q.First();
+                if (q.Any())
+                {
+                    Message mess = q.First();
 
-                bool sent;
+                    bool sent;
 
-                if (mess.getSenderFromMessage() == id) { sent = true; } else { sent = false; }
+                    if (mess.getSenderFromMessage() == id) { sent = true; } else { sent = false; }
 
-                return Json(new JsonMessage() { Content = mess.getContentFromMessage(), Created = Message.getTime(), Id = mess.Id, Sent = sent });
+                    return Json(new JsonMessage() { Content = mess.getContentFromMessage(), Created = Message.getTime(), Id = mess.Id, Sent = sent });
+                }
+                return BadRequest();
             }
-            //var messages = await _context.Messages.ToListAsync();
+
+
             var qu = from conversations in _context.Conversations
                      where conversations.User.UserName == name && conversations.RemoteUser.UserName == id
                      select conversations.Messages.ToList();
-            List<Message> messages = qu.First();
 
-            var messagesList = new List<JsonMessage>();
-
-            foreach (Message message in messages)
+            if (qu.Any())
             {
-                string sender = message.getSenderFromMessage();
-                string content = message.getContentFromMessage();
-                string time = message.Time;
-                int Id = message.Id;
+                List<Message> messages = qu.First();
 
-                bool sent;
-                // ????????????????????????????????
-                if (sender == name) { sent = true; } else { sent = false; }
+                var messagesList = new List<JsonMessage>();
 
-                messagesList.Add(new JsonMessage() { Content = content, Id = Id, Sent = sent, Created = time });
+                foreach (Message message in messages)
+                {
+                    string sender = message.getSenderFromMessage();
+                    string content = message.getContentFromMessage();
+                    string time = message.Time;
+                    int Id = message.Id;
+
+                    bool sent;
+                    if (sender == name) { sent = true; } else { sent = false; }
+
+                    messagesList.Add(new JsonMessage() { Content = content, Id = Id, Sent = sent, Created = time });
+                }
+                return Json(messagesList);
             }
-
-            return Json(messagesList);
+            return BadRequest();
         }
 
-        // POST: Messages
+        // POST: contacts/{id}/messages
         [HttpPost]
         [ActionName("messages")]
-        public async Task<IActionResult> SetMessageContent(string id, [Bind("Id, Content, Created, Sent")] JsonMessage message)
+        public async Task<IActionResult> AddMessage(string id, [Bind("Id, Content, Created, Sent")] JsonMessage message)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
@@ -158,18 +164,57 @@ namespace MaKore.Controllers
             return BadRequest();
         }
 
-    
 
-    // GET: Messages/Details/5
-    [HttpPut, ActionName("messages")]
-        public async Task<IActionResult> RemoveMessage(string id, int? id2, [Bind("content")] string content)
+        // PUT contacts/{id}/messages/{id2}
+        [HttpPut("{id2}")]
+        [ActionName("messages")]
+        public async Task<IActionResult> EditMessage(string id, int id2, [Bind("Id, Content, Created, Sent")] JsonMessage message)
         {
-            Message mess = (Message)(from message in _context.Messages
-                                     where message.Id == id2
-                                     select message);
-            _context.Messages.Remove(mess);
-            _context.SaveChanges();
-            return NoContent();    //204
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string name = UserNameFromJWT(authHeader, _configuration);
+
+
+            var q = from mess in _context.Messages
+                    where mess.Id == id2
+                    select mess;
+
+            if (q.Any())
+            {
+                Message m = q.First();
+                m.Content = name + ":" + message.Content;
+                _context.SaveChanges();
+                // ????????
+                return StatusCode(201);
+            }
+            return BadRequest();
+        }
+
+        // DELETE: contacts/{id}/messages/{id2}
+        [HttpDelete("{id2}")]
+        [ActionName("messages")]
+        public async Task<IActionResult> RemoveMessage(string id, int id2)
+        {
+            /*
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string name = UserNameFromJWT(authHeader, _configuration);
+            */
+            var q = from mess in _context.Messages
+                    where mess.Id == id2
+                    select mess;
+
+            if (q.Any())
+            {
+                Message m = q.First();
+                _context.Remove(m);
+                _context.SaveChanges();
+                return NoContent();          //204
+            }
+            return BadRequest();
+
+
+
         }
     }
 }

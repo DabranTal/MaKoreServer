@@ -151,20 +151,21 @@ namespace MaKore.Controllers
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
-            if (ModelState.IsValid)
+            var q = from user in _context.Users where user.UserName == userName select user;
+            if (q.Any())
             {
-                var q = from user in _context.Users where user.UserName == userName select user;
-                if (q.Any())
-                {
-                    User u = q.First();
-                    Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
-                    _context.Add(conv);
-                    await _context.SaveChangesAsync();
-                    remoteUser.Conversation = conv;
-                    _context.RemoteUsers.Add(remoteUser);
-                    await _context.SaveChangesAsync();
-                    return StatusCode(201);
-                }
+                User u = q.First();
+
+                Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
+               // _context.Add(conv);
+                //await _context.SaveChangesAsync();
+                
+                remoteUser.Conversation = conv;
+                remoteUser.ConversationId = conv.Id;
+                _context.RemoteUsers.Add(remoteUser);
+                await _context.SaveChangesAsync();
+                
+                return StatusCode(201);
             }
             return BadRequest();
         }

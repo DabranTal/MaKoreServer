@@ -144,7 +144,6 @@ namespace MaKore.Controllers
         }
 
 
-
         [HttpPost("addConversation")]
         public async Task<IActionResult> AddConversation([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
         {
@@ -152,19 +151,23 @@ namespace MaKore.Controllers
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
             var q = from user in _context.Users where user.UserName == userName select user;
-            if (q.Any())
+
+            if (ModelState.IsValid)
             {
-                User u = q.First();
-                Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
-                _context.Add(conv);
-                await _context.SaveChangesAsync();
-                remoteUser.Conversation = conv;
-                remoteUser.ConversationId = conv.Id;
-                _context.RemoteUsers.Add(remoteUser);
-                await _context.SaveChangesAsync();
-                return StatusCode(201);
+                if (q.Any())
+                {
+                    User u = q.First();
+                    remoteUser.Conversation = new Conversation(u, remoteUser);
+                    _context.Add(remoteUser);
+                    _context.Add(remoteUser.Conversation);
+                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
+                    return StatusCode(201)
+                }
+
             }
             return BadRequest();
+
         }
 
 

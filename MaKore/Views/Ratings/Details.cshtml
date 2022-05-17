@@ -4,46 +4,45 @@
     ViewData["Title"] = "Details";
 }
 
-
-<div class="container mt-4 shadow-lg" style="padding-top:50px;position:absolute; top:20%;">
-    <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-md-6">
-            <h2 class="text-white">Details</h2>
-            <p class="text-white">Details about this Feedback</p>
-            <hr>
-            <dl class="row">
-        <dt class = "col-sm-2" style="padding-bottom:10px;">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10" style="padding-bottom:10px;">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2" style="padding-bottom:10px;">
-            @Html.DisplayNameFor(model => model.Grade)
-        </dt>
-        <dd class = "col-sm-10" style="padding-bottom:10px;">
-            @Html.DisplayFor(model => model.Grade)
-        </dd>
-        <dt class = "col-sm-2" style="padding-bottom:10px;">
-            @Html.DisplayNameFor(model => model.Feedback)
-        </dt>
-        <dd class = "col-sm-10" style="padding-bottom:10px;">
-            @Html.DisplayFor(model => model.Feedback)
-        </dd>
-        <dt class = "col-sm-2" style="padding-bottom:10px;">
-            @Html.DisplayNameFor(model => model.Date)
-        </dt>
-        <dd class = "col-sm-10" style="padding-bottom:10px;">
-            @Html.DisplayFor(model => model.Date)
-        </dd>
-    </dl>
-    
+<div id="container">
+    <div class="head">
+        <span class="first">Details</span>
+        <div class="ratepanel">
+            <a class="create" asp-action="Index">Back to Rating page</a>
+            <a  asp-action="Edit" asp-route-id="@Model?.ID">Edit Feadback</a>
+            <a class="return" href='http://localhost:3000/chats'>Return to Chat</a>
         </div>
     </div>
-<div>
-    <a style="font-size:large;" asp-action="Edit" asp-route-id="@Model?.ID">Edit</a> |
-    <a style="font-size:large;" asp-action="Index">Back to Home page</a>
-</div>
-</div>
+    <div class="box-container">
+        <div class="col-md-6">
+            <hr>
+            <dl class="row">
+                <dt class="col-sm-2" style="padding-bottom:10px;">
+                    @Html.DisplayNameFor(model => model.Name)
+                </dt>
+                <dd class="col-sm-10" style="padding-bottom:10px;">
+                    @Html.DisplayFor(model => model.Name)
+                </dd>
+                <dt class="col-sm-2" style="padding-bottom:10px;">
+                    @Html.DisplayNameFor(model => model.Grade)
+                </dt>
+                <dd class="col-sm-10" style="padding-bottom:10px;">
+                    @Html.DisplayFor(model => model.Grade)
+                </dd>
+                <dt class="col-sm-2" style="padding-bottom:10px;">
+                    @Html.DisplayNameFor(model => model.Feedback)
+                </dt>
+                <dd class="col-sm-10" style="padding-bottom:10px;">
+                    @Html.DisplayFor(model => model.Feedback)
+                </dd>
+                <dt class="col-sm-2" style="padding-bottom:10px;">
+                    @Html.DisplayNameFor(model => model.Date)
+                </dt>
+                <dd class="col-sm-10" style="padding-bottom:10px;">
+                    @Html.DisplayFor(model => model.Date)
+                </dd>
+            </dl>
 
+        </div>
+    </div>
+</div>

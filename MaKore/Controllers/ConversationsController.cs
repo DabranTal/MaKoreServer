@@ -13,7 +13,6 @@ using MaKore.JsonClasses;
 
 namespace MaKore.Controllers
 {
-
     [ApiController]
     [Route("api")]
     public class ConversationsController : BaseController
@@ -21,23 +20,22 @@ namespace MaKore.Controllers
         private readonly MaKoreContext _context;
         public IConfiguration _configuration;
 
-
         public ConversationsController(MaKoreContext context, IConfiguration config)
         {
             _context = context;
             _configuration = config;
-  
+
         }
+
 
         // GET: /contacts + /contacts/:id
         [HttpGet("contacts/{id?}")]
         public async Task<IActionResult> GetContacts(string? id)
         {
-
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
-            
+
             // if we got a friend's id we return only it's details
             if ((id != null) && (userName != null))
             {
@@ -45,8 +43,7 @@ namespace MaKore.Controllers
                         where conversations.RemoteUser.UserName == id && conversations.User.UserName == userName
                         select conversations.RemoteUser;
 
-
-                if (q.Any()) 
+                if (q.Any())
                 {
                     RemoteUser remoteUser = q.First();
                     Message lastMessage = getLastMessage(remoteUser, userName);
@@ -57,12 +54,12 @@ namespace MaKore.Controllers
                     {
                         content = lastMessage.getContentFromMessage();
                         time = lastMessage.Time;
-                    } else
+                    }
+                    else
                     {
                         content = "";
                         time = "";
                     }
-
 
                     return Json(new JsonUser()
                     {
@@ -72,14 +69,15 @@ namespace MaKore.Controllers
                         LastDate = time,
                         Last = content
                     });
-                } else { return BadRequest(); }
+                }
+                else { return BadRequest(); }
             }
 
             // we didn't get a friend's id. we return all of the user's friends
             var qu = from conversations in _context.Conversations
-                    where conversations.User.UserName == userName
-                    select conversations.RemoteUser;
-            
+                     where conversations.User.UserName == userName
+                     select conversations.RemoteUser;
+
             List<JsonUser> friends = new List<JsonUser>();
 
             // go over the user's friends
@@ -94,7 +92,8 @@ namespace MaKore.Controllers
                 {
                     c = lm.getContentFromMessage();
                     time = lm.Time;
-                } else
+                }
+                else
                 {
                     c = "";
                     time = "";
@@ -111,7 +110,7 @@ namespace MaKore.Controllers
                         Last = c
                     });
             }
-            
+
             return Json(friends);
         }
 
@@ -120,13 +119,12 @@ namespace MaKore.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetMe()
         {
-            
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
-            
 
             var q = from user in _context.Users where user.UserName == userName select user;
+
             if (q.Any())
             {
                 User u = q.First();
@@ -140,31 +138,46 @@ namespace MaKore.Controllers
                 });
             }
             return BadRequest();
-
         }
 
-
-
+        // POST: /addConversation
         [HttpPost("addConversation")]
         public async Task<IActionResult> AddConversation([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
+
             var q = from user in _context.Users where user.UserName == userName select user;
+
             if (q.Any())
             {
                 User u = q.First();
-
                 Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
-               // _context.Add(conv);
-                //await _context.SaveChangesAsync();
-                
+                _context.Add(conv);
                 remoteUser.Conversation = conv;
                 remoteUser.ConversationId = conv.Id;
                 _context.RemoteUsers.Add(remoteUser);
+
+                var q2 = from user in _context.Users where user.UserName == remoteUser.UserName select user;
+
+                if (q2.Any())
+                {
+                    User u1 = q2.First();
+                    RemoteUser ru = new RemoteUser()
+                    {
+                        UserName = userName,
+                        NickName = u.NickName,
+                        Server = "localhost:5018"
+                    };
+
+                    Conversation conv1 = new Conversation() { Messages = new List<Message>(), User = u1, RemoteUser = ru };
+                    _context.Add(conv1);
+                    ru.Conversation = conv1;
+                    ru.ConversationId = conv1.Id;
+                    _context.RemoteUsers.Add(ru);
+                }
                 await _context.SaveChangesAsync();
-                
                 return StatusCode(201);
             }
             return BadRequest();
@@ -172,55 +185,73 @@ namespace MaKore.Controllers
 
 
         // PUT: /contacts/id
-        [HttpPut, ActionName("contacts")]
+        [HttpPut("contacts/{id}")]
         public async Task<IActionResult> Put(string contact, [Bind("UserName, NickName, Server")] RemoteUser ru)
         {
-            if (ru == null)
-            {
-                return Json(new EmptyResult());
-            }
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
 
-            RemoteUser remoteUser = (RemoteUser) from remote in _context.RemoteUsers
-                                                 where remote.UserName == contact && remote.Server == ru.Server
-                                                 select remote;
-            remoteUser.UserName = ru.UserName;
-            remoteUser.NickName = ru.NickName;
-            return NoContent();    //204
+            // WHAT CAN CHANGE ?!?!?! WHAT STAYES THE SAME ?!?!?!
+            if (ModelState.IsValid)
+            {
+                var q = from remote in _context.RemoteUsers
+                        where remote.UserName == contact && remote.Server == ru.Server
+                        select remote;
+
+                if (q.Any())
+                {
+                    // each one of our remote users with this new id (which are the same person) need to be changed
+                    foreach (var r in q)
+                    {
+                        r.Server = ru.Server;
+                        r.NickName = ru.NickName;
+                        r.UserName = ru.UserName;
+                    }
+                    return NoContent();            //204
+                }
+            }
+            return BadRequest();
         }
 
 
         // DELETE: /contacts/id
-        [HttpDelete, ActionName("contacts")]
+        [HttpDelete("contacts/{id}")]
         public async Task<IActionResult> Delete(string contact)
         {
-            if (contact == null)
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+            // WHAT CAN CHANGE ?!?!?! WHAT STAYES THE SAME ?!?!?!
+            if (ModelState.IsValid)
             {
-                return Json(new EmptyResult());
+                var q = from conversations in _context.Conversations
+                        where conversations.RemoteUser.UserName == contact && conversations.User.UserName == userName
+                        select conversations.RemoteUser;
+
+                if (q.Any())
+                {
+                    _context.Remove(q.First());
+                    _context.SaveChanges();
+                    return NoContent();
+                }
             }
-
-            string name = HttpContext.Session.GetString("username");
-
-            var remoteUser = from conversations in _context.Conversations
-                             where conversations.RemoteUser.UserName == contact && conversations.User.UserName == name
-                             select conversations.RemoteUser;
-
-            _context.RemoteUsers.Remove(remoteUser.First());
-            _context.SaveChanges();
-            return NoContent();    //204
+            return BadRequest();
         }
 
 
         private Message getLastMessage(RemoteUser ru, string name)
         {
             var q = from conv in _context.Conversations.Include(m => m.Messages)
-                             where conv.User.UserName == name && conv.RemoteUser == ru
-                             select conv;
+                    where conv.User.UserName == name && conv.RemoteUser == ru
+                    select conv;
 
             if (q.Any())
             {
                 Conversation c = q.First();
                 if ((c != null) && (c.Messages.Count != 0))
-                    return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();                 
+                    return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();
             }
             return null;
         }

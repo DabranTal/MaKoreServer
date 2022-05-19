@@ -9,13 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
 using MaKore.JsonClasses;
 
-public class MyPayload
-{
-    [Newtonsoft.Json.JsonProperty("content")]
-    public string content { get; set; }
-}
-
-
 namespace MaKore.Controllers
 {
 
@@ -124,41 +117,42 @@ namespace MaKore.Controllers
                 conversation.Messages.Add(newMessage);
                 _context.Add(newMessage);
                 _context.SaveChanges();
-            }
 
 
-            var q2 = from user in _context.Users
-                     where user.UserName == id
-                     select user;
+                var q2 = from user in _context.Users
+                         where user.UserName == id
+                         select user;
 
-            // the remote user is also our client (our user)
-            if (q2.Any())
-            {
-                var q3 = from conv in _context.Conversations
-                         where conv.User.UserName == id && conv.RemoteUser.UserName == username
-                         select conv;
-
-                if (q3.Any())
+                // the remote user is also our client (our user)
+                if (q2.Any())
                 {
-                    Conversation contraConversation = q3.First();
-                    Message duplicatedMessage = new Message()
-                    {
-                        Content = newContent,
-                        Time = time,
-                        ConversationId = contraConversation.Id
-                    };
+                    var q3 = from conv in _context.Conversations
+                             where conv.User.UserName == id && conv.RemoteUser.UserName == username
+                             select conv;
 
-                    if (contraConversation.Messages == null)
+                    if (q3.Any())
                     {
-                        contraConversation.Messages = new List<Message>();
+                        Conversation contraConversation = q3.First();
+                        Message duplicatedMessage = new Message()
+                        {
+                            Content = newContent,
+                            Time = time,
+                            ConversationId = contraConversation.Id
+                        };
+
+                        if (contraConversation.Messages == null)
+                        {
+                            contraConversation.Messages = new List<Message>();
+                        }
+
+                        contraConversation.Messages.Add(duplicatedMessage);
+                        _context.Add(duplicatedMessage);
+                        _context.SaveChanges();
                     }
-
-                    contraConversation.Messages.Add(duplicatedMessage);
-                    _context.Add(duplicatedMessage);
-                    _context.SaveChanges();
                 }
-
                 return StatusCode(201);
+
+
             }
             return BadRequest();
         }

@@ -54,7 +54,6 @@ namespace MaKore.Controllers
             var isRegistered = _context.Users.Where(m => m.UserName == username && m.Password == password);
             if (isRegistered.Any())
             {
-                // rediret with react
                 return true;
             }
             else

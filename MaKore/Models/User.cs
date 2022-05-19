@@ -9,11 +9,10 @@ namespace MaKore.Models
 
         [Required]
         public string Password { get; set; }
-        
+
         public string NickName { get; set; }
 
         public List<Conversation> ConversationList { get; set; }
-
 
     }
 }

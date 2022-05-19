@@ -25,7 +25,7 @@ namespace MaKore.Controllers
         {
             _context = context;
             _configuration = config;
-  
+
         }
 
 
@@ -36,7 +36,7 @@ namespace MaKore.Controllers
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
-            
+
             // if we got a friend's id we return only it's details
             if ((id != null) && (userName != null))
             {
@@ -44,7 +44,7 @@ namespace MaKore.Controllers
                         where conversations.RemoteUser.UserName == id && conversations.User.UserName == userName
                         select conversations.RemoteUser;
 
-                if (q.Any()) 
+                if (q.Any())
                 {
                     RemoteUser remoteUser = q.First();
                     Message lastMessage = getLastMessage(remoteUser, userName);
@@ -55,7 +55,8 @@ namespace MaKore.Controllers
                     {
                         content = lastMessage.getContent();
                         time = lastMessage.Time;
-                    } else
+                    }
+                    else
                     {
                         content = "";
                         time = "";
@@ -69,14 +70,15 @@ namespace MaKore.Controllers
                         LastDate = time,
                         Last = content
                     });
-                } else { return BadRequest(); }
+                }
+                else { return BadRequest(); }
             }
 
             // we didn't get a friend's id. we return all of the user's friends
             var qu = from conversations in _context.Conversations
-                    where conversations.User.UserName == userName
-                    select conversations.RemoteUser;
-            
+                     where conversations.User.UserName == userName
+                     select conversations.RemoteUser;
+
             List<JsonUser> friends = new List<JsonUser>();
 
             // go over the user's friends
@@ -91,7 +93,8 @@ namespace MaKore.Controllers
                 {
                     c = lm.getContent();
                     time = lm.Time;
-                } else
+                }
+                else
                 {
                     c = "";
                     time = "";
@@ -108,7 +111,7 @@ namespace MaKore.Controllers
                         Last = c
                     });
             }
-            
+
             return Json(friends);
         }
 
@@ -120,9 +123,9 @@ namespace MaKore.Controllers
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
-            
+
             var q = from user in _context.Users where user.UserName == userName select user;
-            
+
             if (q.Any())
             {
                 User u = q.First();
@@ -157,7 +160,6 @@ namespace MaKore.Controllers
                 remoteUser.ConversationId = conv.Id;
                 _context.RemoteUsers.Add(remoteUser);
 
-                // check if the remoteUser is also registered to our app
                 var q2 = from user in _context.Users where user.UserName == remoteUser.UserName select user;
 
                 // this is our user !
@@ -223,12 +225,12 @@ namespace MaKore.Controllers
                     {
                         r.Server = ru.Server;
                         r.NickName = ru.NickName;
-                        r.UserName = ru.UserName;                       
+                        r.UserName = ru.UserName;
                     }
                     return NoContent();            //204
                 }
             }
-            return BadRequest();    
+            return BadRequest();
         }
 
 
@@ -260,14 +262,14 @@ namespace MaKore.Controllers
         private Message getLastMessage(RemoteUser ru, string name)
         {
             var q = from conv in _context.Conversations.Include(m => m.Messages)
-                             where conv.User.UserName == name && conv.RemoteUser == ru
-                             select conv;
+                    where conv.User.UserName == name && conv.RemoteUser == ru
+                    select conv;
 
             if (q.Any())
             {
                 Conversation c = q.First();
                 if ((c != null) && (c.Messages.Count != 0))
-                    return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();                 
+                    return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();
             }
             return null;
         }

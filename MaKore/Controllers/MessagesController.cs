@@ -115,7 +115,7 @@ namespace MaKore.Controllers
                     Time = time,
                     ConversationId = conversation.Id
                 };
-                
+
                 if (conversation.Messages == null)
                 {
                     conversation.Messages = new List<Message>();
@@ -135,8 +135,8 @@ namespace MaKore.Controllers
             if (q2.Any())
             {
                 var q3 = from conv in _context.Conversations
-                        where conv.User.UserName == id && conv.RemoteUser.UserName == username
-                        select conv;
+                         where conv.User.UserName == id && conv.RemoteUser.UserName == username
+                         select conv;
 
                 if (q3.Any())
                 {

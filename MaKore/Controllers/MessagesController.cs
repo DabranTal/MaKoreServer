@@ -20,7 +20,6 @@ namespace MaKore.Controllers
 {
 
     [ApiController]
-    //[Route("api/contacts/{id}/messages")]
     [Route("api/contacts/{id}/[action]")]
 
     public class MessagesController : BaseController
@@ -54,9 +53,9 @@ namespace MaKore.Controllers
 
                     bool sent;
 
-                    if (mess.getSenderFromMessage() == id) { sent = true; } else { sent = false; }
+                    if (mess.getSender() == id) { sent = true; } else { sent = false; }
 
-                    return Json(new JsonMessage() { Content = mess.getContentFromMessage(), Created = Message.getTime(), Id = mess.Id, Sent = sent });
+                    return Json(new JsonMessage() { Content = mess.getContent(), Created = Message.getTime(), Id = mess.Id, Sent = sent });
                 }
                 return BadRequest();
             }
@@ -74,8 +73,8 @@ namespace MaKore.Controllers
 
                 foreach (Message message in messages)
                 {
-                    string sender = message.getSenderFromMessage();
-                    string content = message.getContentFromMessage();
+                    string sender = message.getSender();
+                    string content = message.getContent();
                     string time = message.Time;
                     int Id = message.Id;
 
@@ -103,7 +102,7 @@ namespace MaKore.Controllers
                     select conv;
 
             string newContent;
-            newContent = username + ":" + message.Content;
+            newContent = username + "æ" + message.Content;
 
             string time = Message.getTime();
 
@@ -182,7 +181,8 @@ namespace MaKore.Controllers
             if (q.Any())
             {
                 Message m = q.First();
-                m.Content = name + ":" + message.Content;
+                string sender = m.getSender();
+                m.Content = sender + "æ" + message.Content;
                 _context.SaveChanges();
                 // ????????
                 return StatusCode(201);
@@ -195,11 +195,10 @@ namespace MaKore.Controllers
         [ActionName("messages")]
         public async Task<IActionResult> RemoveMessage(string id, int id2)
         {
-            /*
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string name = UserNameFromJWT(authHeader, _configuration);
-            */
+
             var q = from mess in _context.Messages
                     where mess.Id == id2
                     select mess;

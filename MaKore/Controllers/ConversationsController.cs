@@ -10,6 +10,7 @@ using MaKore.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MaKore.JsonClasses;
+using System.Net;
 
 namespace MaKore.Controllers
 {
@@ -52,7 +53,7 @@ namespace MaKore.Controllers
 
                     if (lastMessage != null)
                     {
-                        content = lastMessage.getContentFromMessage();
+                        content = lastMessage.getContent();
                         time = lastMessage.Time;
                     } else
                     {
@@ -88,7 +89,7 @@ namespace MaKore.Controllers
 
                 if (lm != null)
                 {
-                    c = lm.getContentFromMessage();
+                    c = lm.getContent();
                     time = lm.Time;
                 } else
                 {
@@ -156,8 +157,10 @@ namespace MaKore.Controllers
                 remoteUser.ConversationId = conv.Id;
                 _context.RemoteUsers.Add(remoteUser);
 
+                // check if the remoteUser is also registered to our app
                 var q2 = from user in _context.Users where user.UserName == remoteUser.UserName select user;
 
+                // this is our user !
                 if (q2.Any())
                 {
                     User u1 = q2.First();
@@ -173,6 +176,23 @@ namespace MaKore.Controllers
                     ru.Conversation = conv1;
                     ru.ConversationId = conv1.Id;
                     _context.RemoteUsers.Add(ru);
+                } else
+                {
+                    // this is not our user. we need to invite his server
+                    string URL = "http://" + remoteUser.Server + "/api/invitations";
+
+                    JsonInvitations inv = new JsonInvitations()
+                    {
+                        Server = "localhost:5018",
+                        From = userName,
+                        To = remoteUser.UserName,
+                    };
+
+                    using (WebClient wc = new WebClient())
+                    {
+                        wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+                        string HtmlResult = wc.UploadString(URL, inv.ToString());
+                    }
                 }
                 await _context.SaveChangesAsync();
                 return StatusCode(201);
@@ -236,7 +256,6 @@ namespace MaKore.Controllers
             }
             return BadRequest();
         }
-
 
         private Message getLastMessage(RemoteUser ru, string name)
         {

@@ -10,6 +10,7 @@ namespace MaKore.Models
         public string UserName { get; set; }
         public string Server { get; set; }
 
+        [Required]
         public int ConversationId { get; set; }
         public Conversation Conversation { get; set; }
     }

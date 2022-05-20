@@ -12,15 +12,20 @@
 		avg = sum / i;
 }
 <meta name="viewport" content="width=device-width, intial-scalse-1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <body>
 	<section id="container">
 		<div class="head">
-			<span class="first">Our Rating @string.Format("{0:0.0}",avg)/5</span>
+			<span class="first"> MaKore-Help us get better! Rate us</span>
+			<div class="ratepanel">
+			<a class="create" asp-action="Create" >New Feedback</a>
+			<span class="average">Our Rating @string.Format("{0:0.0}",avg)/5</span>
+			<a class="return" href='http://localhost:3000/chats'>Return to Chat</a>
+			</div>
 			<form class="search" asp-action="Search">
-				<input name="query" />
-				<input type="submit" value="Search" />
-			</form>
-			<p class="create"><a asp-action="Create">New Feedback</a></p>
+			<input class="searchbox" name="query" type="text" placeholder="Search.."/>
+			 <button type="submit"><i class="fa fa-search"></i></button>
+			 </form>
 		</div>
 		@foreach (var item in Model)
 		{

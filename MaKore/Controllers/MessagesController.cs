@@ -34,8 +34,7 @@ namespace MaKore.Controllers
             _configuration = config;
         }
 
-        // GET: contacts/{id}/messages
-        //[HttpGet("{id2?}")]
+        // GET: contacts/{id}/messages/{id2?}
         [HttpGet("{id2?}")]
         [ActionName("messages")]
         public async Task<IActionResult> GetAllMessages(string id, int id2)
@@ -93,7 +92,7 @@ namespace MaKore.Controllers
         // POST: contacts/{id}/messages
         [HttpPost]
         [ActionName("messages")]
-        public async Task<IActionResult> SetMessageContent(string id, [Bind("Id, Content, Created, Sent")] JsonMessage message)
+        public async Task<IActionResult> AddMessage(string id, [Bind("Id, Content, Created, Sent")] JsonMessage message)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
@@ -165,9 +164,10 @@ namespace MaKore.Controllers
             return BadRequest();
         }
 
+    
 
-        // GET: Messages/Details/5
-        [HttpPut, ActionName("messages")]
+    // GET: Messages/Details/5
+    [HttpPut, ActionName("messages")]
         public async Task<IActionResult> RemoveMessage(string id, int? id2, [Bind("content")] string content)
         {
             Message mess = (Message)(from message in _context.Messages

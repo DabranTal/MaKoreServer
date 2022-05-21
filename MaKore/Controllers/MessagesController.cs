@@ -151,8 +151,6 @@ namespace MaKore.Controllers
                     }
                 }
                 return StatusCode(201);
-
-
             }
             return BadRequest();
         }

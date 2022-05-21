@@ -95,7 +95,7 @@ namespace MaKore.Hubs
 
         public async Task immediateSennFriend(JsonHubChat immediateChat)
         {
-            await Clients.Group(immediateChat.userName).SendAsync("ReciveFriend", immediateChat.userName, immediateChat.nickName);
+            await Clients.Group(immediateChat.userName).SendAsync("ReciveFriend", immediateChat.userName, immediateChat.nickName, immediateChat.remoteUserName);
         }
     }
 }

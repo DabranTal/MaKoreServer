@@ -59,7 +59,7 @@ namespace MaKore.Hubs
             }
             for (int i = 0; i < ruNumber.Count; i++)
             {
-                var p = from conv in _context.Conversations
+                var p = from conv in _context.Conversations.Include(p => p.User)
                         where conv.RemoteUserId == ruNumber[i] && conv.User.UserName == immediateMessage.userName
                         select conv;
 
@@ -73,10 +73,30 @@ namespace MaKore.Hubs
             }
 
             string convId = id.ToString();
-            await Clients.Group(convId).SendAsync("ReciveMessage", immediateMessage.message);
-            
+            await Clients.Group(convId).SendAsync("ReciveMessage", immediateMessage.message, immediateMessage.x, immediateMessage.userName);
         }
 
+        public async Task registerToAllGrouop(JsonHubChat register)
+        {
+            var q = from u in _context.Users
+                    where u.UserName != register.userName
+                    select u;
+            if (q.Any())
+            {
+
+                foreach (var u in q)
+                {
+                    string id = "";
+                    id = u.UserName;
+                    await Groups.AddToGroupAsync(Context.ConnectionId, id);
+                }
+            }
+        }
+
+        public async Task immediateSennFriend(JsonHubChat immediateChat)
+        {
+            await Clients.Group(immediateChat.userName).SendAsync("ReciveFriend", immediateChat.userName, immediateChat.nickName);
+        }
     }
 }
 

@@ -163,7 +163,7 @@ namespace MaKore.Services
 
                     messagesList.Add(new JsonMessage() { Content = content, Id = Id, Sent = sent, Created = time });
                 }
-                return messagesList;
+                return (List<JsonMessage>)messagesList.OrderBy(d => d.Id);
             }
             return null;
         }

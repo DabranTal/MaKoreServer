@@ -40,7 +40,7 @@ namespace MaKore.Controllers
                 {
                     return Json(one);
                 }
-                return BadRequest();
+                return NotFound();
             }
 
 
@@ -73,8 +73,19 @@ namespace MaKore.Controllers
 
 
         // POST: /addConversation
-        [HttpPost("addConversation")]
-        public async Task<IActionResult> AddConversation([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
+        [HttpPost("contacts")]
+        public async Task<IActionResult> Contacts([Bind("id, name, server")] JsonRemoteUser remoteUser)
+        {
+            RemoteUser ru = new RemoteUser()
+            {
+                UserName = remoteUser.Id,
+                NickName = remoteUser.Name,
+                Server = remoteUser.Server
+            };
+            return AddConversation(ru);
+        }
+
+        public IActionResult AddConversation(RemoteUser remoteUser)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
@@ -111,13 +122,13 @@ namespace MaKore.Controllers
 
         // DELETE: /contacts/id
         [HttpDelete("contacts/{id}")]
-        public async Task<IActionResult> Delete(string contact)
+        public async Task<IActionResult> Delete(string id)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
 
-            if (_serviceU.Delete(userName, contact) == true)
+            if (_serviceU.Delete(userName, id) == true)
             {
                 return StatusCode(201);
             }

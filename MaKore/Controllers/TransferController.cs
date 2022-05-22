@@ -111,7 +111,7 @@ namespace MaKore.Controllers
             string nickname = "";
             if (q.Any())
             {
-                server = "localhost:3000";
+                server = "localhost:5018";
                 nickname = q.First().NickName;
                 RemoteUser ru = new RemoteUser()
                 {

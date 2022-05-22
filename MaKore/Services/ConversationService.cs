@@ -28,7 +28,9 @@ namespace MaKore.Services
                 _context.RemoteUsers.Add(remoteUser);
 
                 // check if the other user is also ours
-                var q2 = from user in _context.Users where user.UserName == remoteUser.UserName select user;
+                var q2 = from user in _context.Users
+                         where user.UserName == remoteUser.UserName && remoteUser.Server == "localhost:5018"
+                         select user;
 
                 if (q2.Any())
                 {

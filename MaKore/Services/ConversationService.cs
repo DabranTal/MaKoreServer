@@ -26,7 +26,7 @@ namespace MaKore.Services
 
 
             // check the user exists AND he doesnt have a conv with the ru already AND he doesn't add himself
-            if ((q.Any()) && (!q1.Any()) && ((currUser != remoteUser.UserName) && (remoteUser.Server != Consts.localHost)))
+            if ((q.Any()) && (!q1.Any()) && ((currUser != remoteUser.UserName) && (remoteUser.Server == Consts.localHost)))
             {
                 User u = q.First();
                 Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };

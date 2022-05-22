@@ -29,7 +29,7 @@ namespace MaKore.Controllers
         }
 
 
-            [HttpGet("Users")]
+        [HttpGet("Users")]
         public async Task<IActionResult> GetUsers()
         {
             string authHeader = Request.Headers["Authorization"];

@@ -1,23 +1,31 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
+using MaKore.Services;
 
 namespace MaKore.Controllers
 {
     public class RatingsController : Controller
     {
-        private readonly MaKoreContext _context;
+        public IRatingService _service;
+
 
         public RatingsController(MaKoreContext context)
         {
-            _context = context;
+            _service = new RatingService(context);
         }
 
         // GET: Ratings
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Rating.ToListAsync());
+            List<Rating> list = _service.Get();
+            if (list == null)
+            {
+                return NotFound();
+            }
+            return View(list);
         }
+
 
         // GET: Ratings/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -27,21 +35,31 @@ namespace MaKore.Controllers
                 return NotFound();
             }
 
-            var rating = await _context.Rating
-                .FirstOrDefaultAsync(m => m.ID == id);
-            if (rating == null)
+            Rating r = _service.GetByIndex((int)id);
+            if (r == null)
+            {
+                return NotFound();
+            }
+            return View(r);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Search(string query)
+        {
+            if (query == null)
             {
                 return NotFound();
             }
 
-            return View(rating);
+            List<Rating> list = _service.Search(query);
+            if (list == null)
+            {
+                return NotFound();
+            }
+            return View(list);
         }
-        [HttpPost]
-        public async Task<IActionResult> Search(string query)
-        {
-            var search = _context.Rating.Where(rating => rating.Name.Contains(query)); 
-            return View(await search.ToListAsync());
-        }
+
 
         // GET: Ratings/Create
         public IActionResult Create()
@@ -58,8 +76,7 @@ namespace MaKore.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(rating);
-                await _context.SaveChangesAsync();
+                _service.Create(rating);
                 return RedirectToAction(nameof(Index));
             }
             return View(rating);
@@ -73,7 +90,7 @@ namespace MaKore.Controllers
                 return NotFound();
             }
 
-            var rating = await _context.Rating.FindAsync(id);
+            var rating = _service.GetByIndex((int)id);
             if (rating == null)
             {
                 return NotFound();
@@ -97,12 +114,11 @@ namespace MaKore.Controllers
             {
                 try
                 {
-                    _context.Update(rating);
-                    await _context.SaveChangesAsync();
+                    _service.Edit(rating);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!RatingExists(rating.ID))
+                     if (_service.GetByIndex(rating.ID) == null)
                     {
                         return NotFound();
                     }
@@ -124,8 +140,7 @@ namespace MaKore.Controllers
                 return NotFound();
             }
 
-            var rating = await _context.Rating
-                .FirstOrDefaultAsync(m => m.ID == id);
+            Rating rating = _service.GetByIndex((int)id);
             if (rating == null)
             {
                 return NotFound();
@@ -139,15 +154,8 @@ namespace MaKore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var rating = await _context.Rating.FindAsync(id);
-            _context.Rating.Remove(rating);
-            await _context.SaveChangesAsync();
+            _service.Delete(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool RatingExists(int id)
-        {
-            return _context.Rating.Any(e => e.ID == id);
         }
     }
 }

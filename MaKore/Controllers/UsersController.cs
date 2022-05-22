@@ -18,8 +18,18 @@ namespace MaKore.Controllers
             _service = new UserService(context);
         }
 
-        
-        [HttpGet("Users")]
+        [HttpGet("existingUser/{id}")]
+        public async Task<IActionResult> existingUser(string id)
+        {
+            if (_service.IsLocalUser(id) == true)
+            {
+                return Ok();
+            }
+            return BadRequest();
+        }
+
+
+            [HttpGet("Users")]
         public async Task<IActionResult> GetUsers()
         {
             string authHeader = Request.Headers["Authorization"];
@@ -28,7 +38,7 @@ namespace MaKore.Controllers
 
             List<JsonUser> users = _service.GetAll();
 
-            if (User != null)
+            if (users != null)
             {
                 return Json(users);
             }

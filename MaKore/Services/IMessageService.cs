@@ -17,5 +17,7 @@ namespace MaKore.Services
 
         public bool Delete(int id);
 
+        public bool Transfer(string username, string partner, JsonTransfer mpl);
+
     }
 }

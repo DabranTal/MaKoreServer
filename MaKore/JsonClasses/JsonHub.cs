@@ -6,5 +6,6 @@
         public string remoteUserName { get; set; }
         public string userName { get; set; }   
 
+        public string x  { get; set; }
     }
 }

@@ -93,6 +93,16 @@ namespace MaKore.Hubs
             }
         }
 
+        public async Task addRegister(string remote)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, remote);
+        }
+
+        public async Task newRegister(JsonHubChat newRegister)
+        {
+            await Clients.All.SendAsync("newRegisterUser", newRegister.userName);
+        }
+
         public async Task immediateSennFriend(JsonHubChat immediateChat)
         {
             await Clients.Group(immediateChat.userName).SendAsync("ReciveFriend", immediateChat.userName, immediateChat.nickName, immediateChat.remoteUserName);

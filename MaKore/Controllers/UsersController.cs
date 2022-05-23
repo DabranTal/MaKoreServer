@@ -1,95 +1,123 @@
 ﻿#nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using MaKore.JsonClasses;
+using MaKore.Services;
 using MaKore.Models;
-
-
 
 namespace MaKore.Controllers
 {
-
     [ApiController]
-    [Route("api/cocccntacts/{action}")]
-    public class UsersController : Controller
+    [Route("api")]
+    public class UsersController : BaseController
     {
+        public IConfiguration _configuration;
+        public IUserService _service;
 
-        private readonly MaKoreContext _context;
-
-        public UsersController(MaKoreContext context)
+        public UsersController(MaKoreContext context, IConfiguration config)
         {
-            _context = context;
-          
+            _configuration = config;
+            _service = new UserService(context);
         }
 
-        // GET: Users/Create
-        public IActionResult Register()
+        [HttpGet("Users")]
+        public async Task<IActionResult> GetUsers()
         {
-            return View();
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+            List<JsonUser> users = _service.GetAll();
+
+            if (users != null)
+            {
+                return Json(users);
+            }
+            return BadRequest();
         }
 
-        // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost, ActionName("Register")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register([Bind("UserName,Password,NickName")] User user)
+        // GET : /me
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMe()
         {
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+            JsonUser u = _service.Get(userName);
+            if (u != null)
+            {
+                return Json(u);
+            }
+            return BadRequest();
+        }
+
+
+        // GET: /contacts + /contacts/:id
+        [HttpGet("contacts/{id?}")]
+        public async Task<IActionResult> GetContacts(string? id)
+        {
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+            // if we got a friend's id we return only it's details
+            if ((id != null) && (userName != null))
+            {
+                JsonUser one = _service.Get(userName, id);
+
+                if (one != null)
+                {
+                    return Json(one);
+                }
+                return NotFound();
+            }
+
+
+            // we didn't get a friend's id. we return all of the user's friends
+            List<JsonUser> friends = _service.GetContacts(userName);
+
+            if (friends != null)
+            {
+                return Json(friends);
+            }
+            return BadRequest();
+        }
+
+
+        // PUT: /contacts/id
+        [HttpPut("contacts/{id}")]
+        public async Task<IActionResult> Put(string contact, [Bind("UserName, NickName, Server")] RemoteUser ru)
+        {
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+            // WHAT CAN CHANGE ?!?!?! WHAT STAYES THE SAME ?!?!?!
             if (ModelState.IsValid)
             {
-
-                var isTakenUserName = from userName in _context.Users.Where(m => m.UserName == user.UserName) select userName;
-                if (isTakenUserName.Any()) {
-                    return View("Error");
-                } else {
-                    HttpContext.Session.SetString("username", isTakenUserName.First().UserName);
-                    _context.Add(user);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                if (_service.Edit(contact, ru) == true)
+                {
+                    return StatusCode(201);
                 }
             }
-            return View(user);
+            return BadRequest();
         }
 
 
-
-
-        // GET: Users/Create
-        public IActionResult Login()
+        // DELETE: /contacts/id
+        [HttpDelete("contacts/{id}")]
+        public async Task<IActionResult> Delete(string id)
         {
-            return View();
-        }
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
 
-        // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost, ActionName("login")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login([Bind("UserName,Password")] User user)
-        {
-            if (ModelState.IsValid)
+            if (_service.Delete(userName, id) == true)
             {
-
-                var isRegistered = _context.Users.Where(m => m.UserName == user.UserName && m.Password == user.Password);
-                if (isRegistered.Any())
-                {
-                    // we save info and when the user refreshes we know its him
-                    HttpContext.Session.SetString("username", isRegistered.First().UserName);
-                    // rediret with react
-                    return View("yes");
-                } else
-                {
-                    return View("no");
-                }
-
-
+                return StatusCode(201);
             }
-            return View(user);
-        }
+            return BadRequest();
 
+        }
     }
 }

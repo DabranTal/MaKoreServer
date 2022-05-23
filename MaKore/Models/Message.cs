@@ -20,15 +20,15 @@ namespace MaKore.Models
             return date.ToString("o");
         }
 
-        public string getContentFromMessage()
+        public string getContent()
         {
-            int start = this.Content.ToString().IndexOf(":") + 1;
+            int start = this.Content.ToString().IndexOf("æ") + 1;
             return this.Content.ToString().Substring(start);
         }
 
-        public string getSenderFromMessage()
+        public string getSender()
         {
-            int end = this.Content.ToString().IndexOf(":");
+            int end = this.Content.ToString().IndexOf("æ");
             return this.Content.ToString().Substring(0, end);
         }
     }

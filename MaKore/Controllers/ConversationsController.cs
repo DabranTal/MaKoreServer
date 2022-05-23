@@ -1,157 +1,105 @@
 ﻿#nullable disable
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using MaKore.JsonClasses;
+using MaKore.Services;
 
 namespace MaKore.Controllers
 {
-
     [ApiController]
     [Route("api")]
-    public class ConversationsController : Controller
+    public class ConversationsController : BaseController
     {
-        private readonly MaKoreContext _context;
+        public IUserService _serviceU;
+        public IConversationService _serviceC;
+        public IConfiguration _configuration;
 
-        public ConversationsController(MaKoreContext context)
+        public ConversationsController(MaKoreContext context, IConfiguration config)
         {
-            _context = context;
+            _serviceU = new UserService(context);
+            _serviceC = new ConversationService(context);
+            _configuration = config;
+        }
 
-            User u = new User()
-           {
-                UserName = "Matan",
-                NickName = "Tani",
-                ConversationList = new List<Conversation>(),
-                Password = "aaa"
+        [HttpPost("contacts")]
+        public async Task<IActionResult> Contacts([Bind("Id, Name, Server")] JsonRemoteUser remoteUser)
+        {
+            
+            RemoteUser ru = new RemoteUser()
+            {
+                UserName = remoteUser.Id,
+                NickName = remoteUser.Name,
+                Server = remoteUser.Server
             };
-            Message msg = new Message() { Content = "Matan:Hello", Conversation = null, ConversationId = 1, Time = Message.getTime() };
-     
-            Conversation conv = new Conversation() { RemoteUser = null, Messages = new List<Message>() { msg}, RemoteUserId = 1, User = u };
-            msg.Conversation = conv;
-            RemoteUser ru = new RemoteUser() { UserName = "Coral", NickName = "Corali", Conversation = conv, Server = "remote", ConversationId = 1 };
-            u.ConversationList.Add(conv);
-            conv.RemoteUser = ru;
-            _context.Add(msg);
-            _context.Add(u);
-            _context.Add(ru);
-            _context.Add(conv);
-            
-            
-            _context.SaveChanges();
+            return AddConversation(ru);
         }
 
-        // GET: /contacts + /contacts/:id
-        [HttpGet("contacts/{id?}")]
-        public async Task<IActionResult> GettAllContacts(string? id)
+
+        public IActionResult AddConversation(RemoteUser remoteUser)
         {
-            string name = "Matan";
-            //string name = HttpContext.Session.GetString("username");
-            
-            if (id != null)
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+            // new conv between our user and another user
+            string res = _serviceC.Create(userName, remoteUser);
+            if (res == "true")
             {
-                var q = from conversations in _context.Conversations
-                        where conversations.RemoteUser.UserName == id && conversations.User.UserName == name
-                        select conversations.RemoteUser;
-
-                RemoteUser remoteUser = q.First();
-
-                Message lastMessage = getLastMessage(remoteUser, name);
-                string content = lastMessage.getContentFromMessage();
-
-                return Json(new JsonUser()
-                {
-                    Id = remoteUser.UserName,
-                    Name = remoteUser.NickName,
-                    Server = remoteUser.Server,
-                    LastDate = lastMessage.Time,
-                    Last = content
-                });
+                return StatusCode(201);
             }
-
-
-            //string name = HttpContext.Session.GetString("username");
-
-            var contacts = from conversations in _context.Conversations
-                           where conversations.User.UserName == name
-                           select conversations.RemoteUser.NickName;
-
-            return Json(contacts);
-            //return View(await _context.Conversations.ToListAsync());
+            return BadRequest();
         }
 
-
-
-        [HttpPost]
-        public async Task<IActionResult> Index([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
+        [HttpGet("validation/{otherName}/{server}")]
+        public async Task<IActionResult> Status(string otherName, string server)
         {
-            if (ModelState.IsValid)
+            string authHeader = Request.Headers["Authorization"];
+            authHeader = authHeader.Replace("Bearer ", "");
+            string userName = UserNameFromJWT(authHeader, _configuration);
+
+            bool isOurUser = _serviceU.IsLocalUser(otherName);
+            bool doHaveConv = _serviceC.IsThereConv(userName, otherName, server);
+
+
+            // check if the other user is also our AND the otherName is not the user itself AND they do not already have a conv
+            if ((isOurUser == true) && (otherName != userName) && (doHaveConv == false))
             {
-                remoteUser.Id = _context.RemoteUsers.Max(x => x.Id) + 1;
-                remoteUser.Conversation = new Conversation();
-                _context.RemoteUsers.Add(remoteUser);
-                await _context.SaveChangesAsync();
-                //return RedirectToAction(nameof(Index));
-                //return View("good");
-                return Json(new EmptyResult());
+                // regular add = 1
+                return Json(1);
+
             }
-            return View("not");
-        }
-
-
-        // PUT: /contacts/id
-        [HttpPut, ActionName("contacts")]
-        public async Task<IActionResult> Put(string contact, [Bind("UserName, NickName, Server")] RemoteUser ru)
-        {
-            if (ru == null)
+            else if ((isOurUser == true) && (otherName != userName) && (doHaveConv == true))
             {
-                return Json(new EmptyResult());
+                // they do have a conv already = 2
+                return Json(2);
+
             }
-
-            RemoteUser remoteUser = (RemoteUser) from remote in _context.RemoteUsers
-                                                 where remote.UserName == contact && remote.Server == ru.Server
-                                                 select remote;
-            remoteUser.UserName = ru.UserName;
-            remoteUser.NickName = ru.NickName;
-            return NoContent();    //204
-        }
-
-
-        // DELETE: /contacts/id
-        [HttpDelete, ActionName("contacts")]
-        public async Task<IActionResult> Delete(string contact)
-        {
-            if (contact == null)
+            else if ((isOurUser == true) && (otherName == userName))
             {
-                return Json(new EmptyResult());
+                // try to add himself = 3
+                return Json(3);
             }
+            else if ((isOurUser == false) && (server == Consts.localHost))
+            {
+                // try to add a not existing user (in our server) - 4
+                return Json(4);
 
-            string name = HttpContext.Session.GetString("username");
-
-            var remoteUser = from conversations in _context.Conversations
-                             where conversations.RemoteUser.UserName == contact && conversations.User.UserName == name
-                             select conversations.RemoteUser;
-
-            _context.RemoteUsers.Remove(remoteUser.First());
-            _context.SaveChanges();
-            return NoContent();    //204
+            }
+            else if ((isOurUser == false) && (server != Consts.localHost) && (doHaveConv == true))
+            {
+                // already have a conversation - 2
+                return Json(2);   
+               
+            }
+            else
+            {
+                // ((isOurUser == false) && (server != Consts.localHost) && (doHaveConv == false))
+                // INVITATION don't have a conversation, add - 6
+                return Json(6);
+            }
         }
 
 
-        private Message getLastMessage(RemoteUser ru, string name)
-        {
-            var q = from conv in _context.Conversations.Include(m => m.Messages)
-                             where conv.User.UserName == name && conv.RemoteUser == ru
-                             select conv;
-
-            Conversation c = q.First();
-            return c.Messages.OrderByDescending(m => m.Id).FirstOrDefault();
-        }
     }
 }

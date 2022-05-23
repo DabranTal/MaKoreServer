@@ -5,39 +5,51 @@
 }
 
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Grade)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Grade)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Feedback)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Feedback)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Date)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Date)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="ID" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+<<div id="container">
+    <div class="head">
+        <span class="first">We would love to hear your thoughts, concerns or problem</span>
+        <div class="ratepanel">
+            <a class="create" asp-action="Index">Back to Home page</a>
+            <span>Edit your FeedBack</span>
+            <a class="return" href='http://localhost:3000/chats'>Return to Chat</a>
+        </div>
+    </div>
+    <div class="box-container">
+        <div class="col-md-6">
+
+            <hr>
+            <dt class="col-sm-2" style="padding-bottom:10px;">
+                @Html.DisplayNameFor(model => model.Name)
+            </dt>
+            <dd class="col-sm-10" style="padding-bottom:10px;">
+                @Html.DisplayFor(model => model.Name)
+            </dd>
+            <dt class="col-sm-2" style="padding-bottom:10px;">
+                @Html.DisplayNameFor(model => model.Grade)
+            </dt>
+            <dd class="col-sm-10" style="padding-bottom:10px;">
+                @Html.DisplayFor(model => model.Grade)
+            </dd>
+            <dt class="col-sm-2" style="padding-bottom:10px;">
+                @Html.DisplayNameFor(model => model.Feedback)
+            </dt>
+            <dd class="col-sm-10" style="padding-bottom:10px;">
+                @Html.DisplayFor(model => model.Feedback)
+            </dd>
+            <dt class="col-sm-2" style="padding-bottom:10px;">
+                @Html.DisplayNameFor(model => model.Date)
+            </dt>
+            <dd class="col-sm-10" style="padding-bottom:10px;">
+                @Html.DisplayFor(model => model.Date)
+            </dd>
+        </div>
+
+        <form asp-action="Delete" style="padding-bottom:10px;">
+            <input type="hidden" asp-for="ID" />
+            <input type="submit" value="Delete" class="btn btn-danger" style="margin-bottom:20px;" />
+        </form>
+    </div>
 </div>
+
+</div>
+

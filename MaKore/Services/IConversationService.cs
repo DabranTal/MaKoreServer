@@ -16,5 +16,6 @@ namespace MaKore.Services
 
         public void ConvWithLocals(string localUser, string localUser2);
 
+        public bool IsThereConv(string userName, string otherName, string server);
     }
 }

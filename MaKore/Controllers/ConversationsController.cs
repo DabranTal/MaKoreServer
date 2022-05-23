@@ -22,59 +22,21 @@ namespace MaKore.Controllers
             _configuration = config;
         }
 
-
-        // GET: /contacts + /contacts/:id
-        [HttpGet("contacts/{id?}")]
-        public async Task<IActionResult> GetContacts(string? id)
+        // ??????? ma ze ???
+        [HttpPost("contacts")]
+        public async Task<IActionResult> Contacts([Bind("id, name, server")] JsonRemoteUser remoteUser)
         {
-            string authHeader = Request.Headers["Authorization"];
-            authHeader = authHeader.Replace("Bearer ", "");
-            string userName = UserNameFromJWT(authHeader, _configuration);
-
-            // if we got a friend's id we return only it's details
-            if ((id != null) && (userName != null))
+            RemoteUser ru = new RemoteUser()
             {
-                JsonUser one = _serviceU.Get(userName, id);
-
-                if (one != null)
-                {
-                    return Json(one);
-                }
-                return BadRequest();
-            }
-
-
-            // we didn't get a friend's id. we return all of the user's friends
-            List<JsonUser> friends = _serviceU.GetContacts(userName);
-
-            if (friends != null)
-            {
-                return Json(friends);
-            }
-            return BadRequest();
+                UserName = remoteUser.Id,
+                NickName = remoteUser.Name,
+                Server = remoteUser.Server
+            };
+            return AddConversation(ru);
         }
 
-
-        // GET : /me
-        [HttpGet("me")]
-        public async Task<IActionResult> GetMe()
-        {
-            string authHeader = Request.Headers["Authorization"];
-            authHeader = authHeader.Replace("Bearer ", "");
-            string userName = UserNameFromJWT(authHeader, _configuration);
-
-            JsonUser u = _serviceU.Get(userName);
-            if (u != null)
-            {
-                return Json(u);
-            }
-            return BadRequest();
-        }
-
-
-        // POST: /addConversation
         [HttpPost("addConversation")]
-        public async Task<IActionResult> AddConversation([Bind("UserName, NickName, Server")] RemoteUser remoteUser)
+        public IActionResult AddConversation(RemoteUser remoteUser)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
@@ -85,51 +47,59 @@ namespace MaKore.Controllers
             if (res == "true")
             {
                 return StatusCode(201);
-            } else if (res == "false")
-            {
-                return BadRequest();
-            } else
-            {
-                return Json(res);
             }
-            
+            return BadRequest();
         }
 
-
-        // PUT: /contacts/id
-        [HttpPut("contacts/{id}")]
-        public async Task<IActionResult> Put(string contact, [Bind("UserName, NickName, Server")] RemoteUser ru)
+        [HttpGet("validation/{otherName}/{server}")]
+        public async Task<IActionResult> status(string otherName, string server)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
 
-            // WHAT CAN CHANGE ?!?!?! WHAT STAYES THE SAME ?!?!?!
-            if (ModelState.IsValid)
-            { 
-                if (_serviceU.Edit(contact, ru) == true)
-                {
-                    return StatusCode(201);
-                }
-            }
-            return BadRequest();
-        }
+            bool isOurUser = _serviceU.IsLocalUser(otherName);
+            bool doHaveConv = _serviceC.IsThereConv(userName, otherName, server);
 
 
-        // DELETE: /contacts/id
-        [HttpDelete("contacts/{id}")]
-        public async Task<IActionResult> Delete(string contact)
-        {
-            string authHeader = Request.Headers["Authorization"];
-            authHeader = authHeader.Replace("Bearer ", "");
-            string userName = UserNameFromJWT(authHeader, _configuration);
-
-            if (_serviceU.Delete(userName, contact) == true)
+            // check if the other user is also our AND the otherName is not the user itself AND they do not already have a conv
+            if ((isOurUser == true) && (otherName != userName) && (doHaveConv == false))
             {
-                return StatusCode(201);
-            }
-            return BadRequest();
+                // regular add = 1
+                return Json(1);
 
+            }
+            else if ((isOurUser == true) && (otherName != userName) && (doHaveConv == true))
+            {
+                // they do have a conv already = 2
+                return Json(2);
+
+            }
+            else if ((isOurUser == true) && (otherName == userName))
+            {
+                // try to add himself = 3
+                return Json(3);
+            }
+            else if ((isOurUser == false) && (server == Consts.localHost))
+            {
+                // try to add a not existing user (in our server) - 4
+                return Json(4);
+
+            }
+            else if ((isOurUser == false) && (server != Consts.localHost) && (doHaveConv == true))
+            {
+                // already have a conversation - 2
+                return Json(2);   
+               
+            }
+            else
+            {
+                // ((isOurUser == false) && (server != Consts.localHost) && (doHaveConv == false))
+                // INVITATION don't have a conversation, add - 6
+                return Json(6);
+            }
         }
+
+
     }
 }

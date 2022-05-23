@@ -14,6 +14,8 @@ namespace MaKore.Services
             _context = context;
         }
 
+
+        // creat conv only between 2 users 
         public string Create(string currUser, RemoteUser remoteUser)
         {
 
@@ -24,9 +26,8 @@ namespace MaKore.Services
                      select conver;
 
 
-
-            // check the user exists AND he doesnt have a conv with the ru already AND he doesn't add himself
-            if ((q.Any()) && (!q1.Any()) && ((currUser != remoteUser.UserName) && (remoteUser.Server == Consts.localHost)))
+            // check the user exists
+            if (q.Any())
             {
                 User u = q.First();
                 Conversation conv = new Conversation() { Messages = new List<Message>(), User = u, RemoteUser = remoteUser };
@@ -36,7 +37,9 @@ namespace MaKore.Services
                 _context.RemoteUsers.Add(remoteUser);
 
                 // check if the other user is also ours
-                var q2 = from user in _context.Users where user.UserName == remoteUser.UserName select user;
+                var q2 = from user in _context.Users
+                         where user.UserName == remoteUser.UserName && remoteUser.Server == Consts.localHost
+                         select user;
 
                 if (q2.Any())
                 {
@@ -56,16 +59,7 @@ namespace MaKore.Services
                 }
                 _context.SaveChanges();
                 return "true";
-
-                // he added an existing friend
-            } else if (q1.Any())
-            {
-                return "alreadyExists";
-                // he added himself
-            } else if ((currUser == remoteUser.UserName) && (remoteUser.Server == Consts.localHost))
-            {
-                return "yourself";
-            }
+            } 
             return "false";
         }
 
@@ -74,8 +68,10 @@ namespace MaKore.Services
             var q = from conv in _context.Conversations.Include(p => p.User).Include(t => t.RemoteUser)
                     where conv.User.UserName == id
                     select conv;
+
             var q2 = from remote in _context.RemoteUsers.Where(x => x.UserName == id2)
                      select remote;
+
             int partnerId = -1;
             foreach (var row in q)
             {
@@ -90,6 +86,28 @@ namespace MaKore.Services
             return false;
         }
 
+        public bool IsThereConv(string id, string id2, string server)
+        {
+            var q = from conv in _context.Conversations.Include(p => p.User).Include(t => t.RemoteUser)
+                    where conv.User.UserName == id
+                    select conv;
+
+            var q2 = from remote in _context.RemoteUsers.Where(x => x.UserName == id2 && x.Server == server)
+                     select remote;
+
+            int partnerId = -1;
+            foreach (var row in q)
+            {
+                foreach (var row2 in q2)
+                {
+                    if (row.User.UserName == id && row.RemoteUserId == row2.Id)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         public void ConvWithRemote(string localUser, string remote)
         {
@@ -121,7 +139,6 @@ namespace MaKore.Services
                 }
             }
         }
-
 
         public RemoteUser CreateRemoteFromLocal(string username)
         {

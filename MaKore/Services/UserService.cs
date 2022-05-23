@@ -14,6 +14,7 @@ namespace MaKore.Services
             _context = context;
         }
 
+        // ???? we need this ??
         public bool Create(string currUser, [Bind(new[] { "UserName, NickName, Password, ConversationList" })] User user)
         {
             throw new NotImplementedException();
@@ -197,6 +198,7 @@ namespace MaKore.Services
             return null;
         }
 
+
         public bool IsLocalUser(string id)
         {
             var q = from u in _context.Users
@@ -209,6 +211,7 @@ namespace MaKore.Services
             }
             return false;
         }
+
 
         public bool IsRemoteUser(string id)
         {

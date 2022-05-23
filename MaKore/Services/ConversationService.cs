@@ -55,7 +55,7 @@ namespace MaKore.Services
                     _context.Add(conv1);
                     ru.Conversation = conv1;
                     ru.ConversationId = conv1.Id;
-                    _context.RemoteUsers.Add(ru);
+                    _context.Add(ru);
                 }
                 _context.SaveChanges();
                 return "true";

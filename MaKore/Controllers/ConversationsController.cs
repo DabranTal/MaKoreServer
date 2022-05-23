@@ -22,10 +22,10 @@ namespace MaKore.Controllers
             _configuration = config;
         }
 
-        // ??????? ma ze ???
         [HttpPost("contacts")]
-        public async Task<IActionResult> Contacts([Bind("id, name, server")] JsonRemoteUser remoteUser)
+        public async Task<IActionResult> Contacts([Bind("Id, Name, Server")] JsonRemoteUser remoteUser)
         {
+            
             RemoteUser ru = new RemoteUser()
             {
                 UserName = remoteUser.Id,
@@ -35,7 +35,7 @@ namespace MaKore.Controllers
             return AddConversation(ru);
         }
 
-        [HttpPost("addConversation")]
+
         public IActionResult AddConversation(RemoteUser remoteUser)
         {
             string authHeader = Request.Headers["Authorization"];
@@ -52,7 +52,7 @@ namespace MaKore.Controllers
         }
 
         [HttpGet("validation/{otherName}/{server}")]
-        public async Task<IActionResult> status(string otherName, string server)
+        public async Task<IActionResult> Status(string otherName, string server)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");

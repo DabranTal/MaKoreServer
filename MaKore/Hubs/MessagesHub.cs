@@ -10,7 +10,6 @@ namespace MaKore.Hubs
     public class MessagesHub : Hub
     {
         private readonly MaKoreContext _context;
-        private int groupId;
 
         public MessagesHub(MaKoreContext context)
         {

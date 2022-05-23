@@ -29,6 +29,8 @@ namespace MaKore.Controllers
         [ActionName("transfer")]
         public IActionResult Transfer([Bind("From, To, Content")] JsonTransfer mpl)
         {
+
+            // TO CHECK
             string username = mpl.From;
             string partner = mpl.To;
 

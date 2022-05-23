@@ -24,6 +24,5 @@ namespace MaKore.Services
         public bool IsLocalUser(string id);
 
         public bool IsRemoteUser(string id);
-
     }
 }

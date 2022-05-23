@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MaKore.Models;
 using MaKore.JsonClasses;
+using MaKore.Services;
 
 namespace MaKore.Controllers
 {
@@ -16,33 +17,24 @@ namespace MaKore.Controllers
     [Route("api")]
     public class InvitationsController : BaseController
     {
-        private readonly MaKoreContext _context;
+        public IInvitationsService _service;
         public IConfiguration _configuration;
 
         public InvitationsController(MaKoreContext context, IConfiguration config)
         {
-            _context = context;
+            _service = new InvitationsService(context);
             _configuration = config;
         }
 
-        // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // a different server serfs here, thus no authantication. Someone wants to talk to OUR user
         [HttpPost("invitations")]
-        //[ValidateAntiForgeryToken]
-        public IActionResult Invitations([Bind("from,to,server")] JsonInvitation user)
+        public IActionResult Invitations([Bind("From,To,Server")] JsonInvitation info)
         {
-            string authHeader = Request.Headers["Authorization"];
-            authHeader = authHeader.Replace("Bearer ", "");
-            string userName = UserNameFromJWT(authHeader, _configuration);
-            var q = from users in _context.Users
-                    select users;
-            List<JsonUser> sendUsers = new List<JsonUser>();
-           // foreach (var user in q)
-             //   sendUsers.Add(new JsonUser() { Id = user.UserName, Name = user.NickName, Server = "home", Last = "", LastDate = "" });
-            return Json(sendUsers);
-
+            if (_service.CreateOnInvitation(info) == true)
+            {
+                return StatusCode(201);
+            }
+            return BadRequest();
         }
-
     }
 }

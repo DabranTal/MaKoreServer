@@ -167,5 +167,81 @@ namespace MaKore.Services
             }
             return null;
         }
+
+
+        public bool Transfer(string username, string partner, JsonTransfer mpl)
+        {
+            var q = from conv in _context.Conversations
+                    where conv.User.UserName == username && conv.RemoteUser.UserName == partner
+                    select conv;
+            // case the message is from remote user
+            if (!(q.Any()))
+            {
+                q = from conv in _context.Conversations
+                    where conv.User.UserName == partner && conv.RemoteUser.UserName == username
+                    select conv;
+            }
+
+            string newContent;
+            newContent = username + ":" + mpl.Content;
+
+            string time = Message.getTime();
+
+            if (q.Any())
+            {
+                Conversation conversation = q.First();
+                Message newMessage = new Message()
+                {
+                    Content = newContent,
+                    Time = time,
+                    ConversationId = conversation.Id
+                };
+
+                if (conversation.Messages == null)
+                {
+                    conversation.Messages = new List<Message>();
+                }
+
+                conversation.Messages.Add(newMessage);
+                _context.Add(newMessage);
+                _context.SaveChanges();
+
+
+                var q2 = from user in _context.Users
+                         where user.UserName == partner
+                         select user;
+
+                // the remote user is also our client (our user)
+                if (q2.Any())
+                {
+                    var q3 = from conv in _context.Conversations
+                             where conv.User.UserName == partner && conv.RemoteUser.UserName == username
+                             select conv;
+
+                    if (q3.Any())
+                    {
+                        Conversation contraConversation = q3.First();
+                        Message duplicatedMessage = new Message()
+                        {
+                            Content = newContent,
+                            Time = time,
+                            ConversationId = contraConversation.Id
+                        };
+
+                        if (contraConversation.Messages == null)
+                        {
+                            contraConversation.Messages = new List<Message>();
+                        }
+
+                        contraConversation.Messages.Add(duplicatedMessage);
+                        _context.Add(duplicatedMessage);
+                        _context.SaveChanges();
+                    }
+                }
+                return true;
+            }
+            return false;
+
+        }
     }
 }

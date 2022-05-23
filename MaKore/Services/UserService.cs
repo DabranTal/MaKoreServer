@@ -196,5 +196,30 @@ namespace MaKore.Services
             }
             return null;
         }
+
+        public bool IsLocalUser(string id)
+        {
+            var q = from u in _context.Users
+                    where u.UserName == id
+                    select u;
+
+            if (q.Any())
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool IsRemoteUser(string id)
+        {
+            var q = from conv in _context.RemoteUsers
+                    where conv.UserName == id
+                    select conv;
+            if (q.Any())
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

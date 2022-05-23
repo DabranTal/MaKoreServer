@@ -30,7 +30,7 @@ namespace MaKore.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost("invitations")]
         //[ValidateAntiForgeryToken]
-        public IActionResult Invitations([Bind("from,to,server")] JsonInvitations user)
+        public IActionResult Invitations([Bind("from,to,server")] JsonInvitation user)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");

@@ -20,6 +20,10 @@ namespace MaKore.Services
         public bool Edit(string contact, RemoteUser ru);
 
         public bool Delete(string currUser, string contact);
+        
+        public bool IsLocalUser(string id);
+
+        public bool IsRemoteUser(string id);
 
     }
 }

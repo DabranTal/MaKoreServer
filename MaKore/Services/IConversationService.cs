@@ -6,6 +6,15 @@ namespace MaKore.Services
 {
     public interface IConversationService
     {
-        public bool Create(string currUser, RemoteUser remoteUser);
+        public string Create(string currUser, RemoteUser remoteUser);
+
+        public bool DoesConversationExist(string id, string id2);
+
+        public void ConvWithRemote(string localUser, string remote);
+
+        public RemoteUser CreateRemoteFromLocal(string username);
+
+        public void ConvWithLocals(string localUser, string localUser2);
+
     }
 }

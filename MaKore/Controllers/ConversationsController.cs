@@ -85,6 +85,7 @@ namespace MaKore.Controllers
             return AddConversation(ru);
         }
 
+        [HttpPost("addConversation")]
         public IActionResult AddConversation(RemoteUser remoteUser)
         {
             string authHeader = Request.Headers["Authorization"];
@@ -92,11 +93,18 @@ namespace MaKore.Controllers
             string userName = UserNameFromJWT(authHeader, _configuration);
 
             // new conv between our user and another user
-            if (_serviceC.Create(userName, remoteUser) == true)
+            string res = _serviceC.Create(userName, remoteUser);
+            if (res == "true")
             {
                 return StatusCode(201);
+            } else if (res == "false")
+            {
+                return BadRequest();
+            } else
+            {
+                return Json(res);
             }
-            return BadRequest();
+            
         }
 
 

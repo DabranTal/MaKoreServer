@@ -1,6 +1,6 @@
 ﻿namespace MaKore.JsonClasses
 {
-    public class JsonInvitations
+    public class JsonInvitation
     {
         public string From { get; set; }
         public string To { get; set; }

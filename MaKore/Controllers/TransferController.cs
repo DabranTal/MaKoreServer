@@ -1,5 +1,4 @@
-﻿using MaKore.Models;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MaKore.JsonClasses;
@@ -21,7 +20,7 @@ namespace MaKore.Controllers
         public IHubContext<MessagesHub> _hub;
 
         public TransferController(MaKoreContext context, IConfiguration config, IHubContext<MessagesHub> hub)
-        {    
+        {
             _context = context;
             _configuration = config;
             _serviceU = new UserService(context);
@@ -33,31 +32,66 @@ namespace MaKore.Controllers
         public async Task sendMessage(JsonHub immediateMessage)
         {
             int id = 0;
-            var q = from ru in _context.RemoteUsers
-                    where ru.UserName == immediateMessage.remoteUserName
-                    select ru;
-            List<int> ruNumber = new List<int>();
-            foreach (var ru in q)
+            if (_serviceU.IsLocalUser(immediateMessage.userName))
             {
-                ruNumber.Add(ru.Id);
-            }
-            for (int i = 0; i < ruNumber.Count; i++)
-            {
-                var p = from conv in _context.Conversations.Include(p => p.User)
-                        where conv.RemoteUserId == ruNumber[i] && conv.User.UserName == immediateMessage.userName
+                // invoke the partner chat
+                var q = from ru in _context.RemoteUsers
+                        where ru.UserName == immediateMessage.remoteUserName
+                        select ru;
+                List<int> ruNumber = new List<int>();
+                foreach (var ru in q)
+                {
+                    ruNumber.Add(ru.Id);
+                }
+                for (int i = 0; i < ruNumber.Count; i++)
+                {
+                    var p = from conv in _context.Conversations.Include(p => p.User)
+                            where conv.RemoteUserId == ruNumber[i] && conv.User.UserName == immediateMessage.userName
+                            select conv;
+
+                    if (p.Any())
+                    {
+                        foreach (var conv in p)
+                        {
+                            id = conv.Id;
+                        }
+                    }
+                }
+                // invoke the sendder user chat
+
+                // get the conversations where the sennder is not the remote user
+                var q2 = from conv in _context.Conversations.Include(p=>p.User)
+                        where conv.User.UserName == immediateMessage.userName
                         select conv;
 
-                if (p.Any())
+                // in all the selected conversations if the remote user is the getter user take the conversation id
+                foreach (var conv in q2)
                 {
-                    foreach (var conv in p)
+                    if (conv.RemoteUser.UserName == immediateMessage.remoteUserName)
                     {
-                        id = conv.Id;
+                        await _hub.Clients.Group(conv.Id.ToString()).SendAsync("ReciveMessage", immediateMessage.message, immediateMessage.x, immediateMessage.userName);
+                        break;
+                    }
+                }
+            } else {
+                // find all Local user conversation
+                var q = from conv in _context.Conversations.Include(p => p.RemoteUser)
+                        where conv.User.UserName == immediateMessage.remoteUserName
+                        select conv;
+
+                // find specific conversation with the "remote user"
+               foreach (var conv in q)
+                {
+                    if (conv.RemoteUser.UserName == immediateMessage.userName)
+                    {
+                        id = conv.RemoteUser.Id;
                     }
                 }
             }
 
             string convId = id.ToString();
             await _hub.Clients.Group(convId).SendAsync("ReciveMessage", immediateMessage.message, immediateMessage.x, immediateMessage.userName);
+
         }
 
 
@@ -67,44 +101,45 @@ namespace MaKore.Controllers
         {
 
             // TO CHECK
-            string username = mpl.From;
-            string partner = mpl.To;
+            string from = mpl.From;
+            string to = mpl.To;
 
             // Make Sure conversation exist other case create her
-            if ((_serviceU.IsRemoteUser(username) || _serviceU.IsLocalUser(username)) && (_serviceU.IsRemoteUser(partner) || _serviceU.IsLocalUser(partner)))
+            if ((_serviceU.IsRemoteUser(from) || _serviceU.IsLocalUser(from)) && (_serviceU.IsRemoteUser(to) || _serviceU.IsLocalUser(to)))
             {
-                if (!(_serviceC.DoesConversationExist(username, partner) || _serviceC.DoesConversationExist(partner, username)))
+                if (!(_serviceC.DoesConversationExist(from, to) || _serviceC.DoesConversationExist(to, from)))
                 {
-                    if (_serviceU.IsLocalUser(username))
+                    if (_serviceU.IsLocalUser(from))
                     {
-                        if (_serviceU.IsLocalUser(partner))
+                        if (_serviceU.IsLocalUser(to))
                         {
-                            _serviceC.ConvWithLocals(username, partner);
+                            _serviceC.ConvWithLocals(from, to);
                         }
                         else
                         {
-                            _serviceC.ConvWithRemote(username, partner);
+                            _serviceC.ConvWithRemote(from, to);
                         }
                     }
-                    else if (_serviceU.IsLocalUser(partner))
+                    else if (_serviceU.IsLocalUser(to))
                     {
-                        if (_serviceU.IsRemoteUser(username))
+                        if (_serviceU.IsRemoteUser(from))
                         {
-                            _serviceC.ConvWithRemote(partner, username);
+                            _serviceC.ConvWithRemote(to, from);
                         }
                     }
                 }
             }
 
-            if (_serviceM.Transfer(username, partner, mpl) == true)
+            if (_serviceM.Transfer(from, to, mpl) == true)
             {
                 Random rand = new Random();
                 var random = rand.NextDouble().ToString();
-                JsonHub jh = new JsonHub() {
+                JsonHub jh = new JsonHub()
+                {
                     message = mpl.Content,
-                    remoteUserName = username,
-                    userName = partner,
-                    x = random 
+                    remoteUserName = to,
+                    userName = from,
+                    x = random
                 };
                 await sendMessage(jh);
                 return StatusCode(201);

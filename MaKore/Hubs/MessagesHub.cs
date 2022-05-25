@@ -42,6 +42,23 @@ namespace MaKore.Hubs
                     await Groups.AddToGroupAsync(Context.ConnectionId, convId);
                 }
             }
+            // find all Local user conversation
+            var q2 = from conv in _context.Conversations.Include(p => p.RemoteUser)
+                    where conv.User.UserName == userName.userName
+                     select conv;
+
+            // find specific conversation with the "remote user"
+            foreach (var conv in q2)
+            {
+               await Groups.AddToGroupAsync(Context.ConnectionId, conv.RemoteUser.Id.ToString());
+            }
+
+            // register User to all his conversation
+
+            foreach (var conv in q2)
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, conv.Id.ToString());
+            }
         }
 
 

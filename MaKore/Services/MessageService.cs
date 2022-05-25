@@ -183,7 +183,7 @@ namespace MaKore.Services
             }
 
             string newContent;
-            newContent = username + ":" + mpl.Content;
+            newContent = username + "æ" + mpl.Content;
 
             string time = Message.getTime();
 

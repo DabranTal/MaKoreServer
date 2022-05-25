@@ -14,7 +14,6 @@ using System.Security.Claims;
 using System.Text;
 using MaKore.JsonClasses;
 
-
 namespace MaKore.Controllers
 {
     [ApiController]
@@ -44,7 +43,8 @@ namespace MaKore.Controllers
             if (UserName == null)
             {
                 return NotFound();
-            } else
+            }
+            else
             {
                 return Json(UserName);
             }
@@ -132,4 +132,3 @@ namespace MaKore.Controllers
         }
     }
 }
-

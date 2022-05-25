@@ -40,6 +40,7 @@ namespace MaKore.Hubs
                     }
                     string convId = id.ToString();
                     await Groups.AddToGroupAsync(Context.ConnectionId, convId);
+                    await Groups.AddToGroupAsync(Context.ConnectionId, ruNumber[i].ToString());
                 }
             }
         }

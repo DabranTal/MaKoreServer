@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using MaKore.Data;
 using MaKore.Models;
 using MaKore.Controllers;
 using Microsoft.IdentityModel.Tokens;
@@ -74,9 +73,6 @@ namespace MaKore.Controllers
                     new Claim(JwtRegisteredClaimNames.Sub,DateTime.UtcNow.ToString()),
                     new Claim("NameIdentifier", username)
                 };
-
-                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWTParams:SecretKey"]));
-                var mac = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
                 _configuration["JWTParams:Issuer"],
                 _configuration["JWTParams:Audience"],

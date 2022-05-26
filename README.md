@@ -3,7 +3,7 @@
 
 MaKore is a communication app we build during the semester<br />
 This is the second part - Web Server.<br />
-In addition to the pervious part, we used and experienced with: ASP.net and C#, signalR, MVC design pattern, MySQL database, JSON Web Token (JWT) and services.<br />
+In addition to the previous part, we used and experienced with: ASP.net and C#, signalR, MVC design pattern, MySQL database, JSON Web Token (JWT) and services.<br />
 
 ### About the Server
 Our website's server has to be connected in order to be able to use MaKore. <br />
@@ -72,7 +72,7 @@ And if we could reach the other server, we tell the user the invitation was succ
 <br />
 ![invitation](https://user-images.githubusercontent.com/90967892/170194735-c13f4192-a427-4536-ad72-c0a8d731214e.jpg)<br />
 
-Corali and tal are both users of the MaKore's server. Since we support **online communication** (using signalR), the message corali wrote to tal appeared at tal's website right away in a new chat between them:<br />
+Since we support **online communication** (using signalR), the message corali wrote to tal appeared at tal's website right away in a new chat between them:<br />
 <br />
 ![realTimeMess](https://user-images.githubusercontent.com/90967892/170192114-3ea920d0-f990-42f2-a57b-d43186e7ac16.jpg) <br />
 <br />
@@ -83,24 +83,26 @@ Corali and tal are both users of the MaKore's server. Since we support **online 
 - Searching users in the chat is still available.
 - All the requirments of signing up to MaKore stay the same.
 - There is one picture (of MaKore) for all users.
+- 
 
 ### How to Run
 Our project divides into two servers, and thus two repositories. <br />
 The first repository is MaKore - the first assigment. There we branched to "ex2" and left "master" intact for those who check our first assigment. (A link to that repository is also in details.txt). <br />
 As in for this repository, here is the server. You need to run it first in order to test our chat itself. Also, the homepage (localhost) of the server is the rating page, although you can easily get there using the button on the chat itself (as explained before). <br />
 <br />
-1. Clone the repository:
+1. Clone this repository - the server:
     ```
     git clone https://github.com/CoralKuta/MaKoreChat
     ```
-2. Enter the MaKore folder:
+2. Enter the MaKore folder and open the project:
     ```
-    cd MaKore
+    cd MaKoreChat/MaKore.sln
     ```
-
-### Demo
-![ourGif](https://user-images.githubusercontent.com/92373590/164725983-68a33597-394a-4502-9c54-5a60acf0fcfe.gif)
-
+3. Open the Package Manager Console and update the database (that you already cloned)
+    ```
+    update-database
+    ```
+  
 ### Developers
 - Tal Dabran 316040898
 - Ido Tavron 316222512

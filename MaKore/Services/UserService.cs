@@ -50,6 +50,7 @@ namespace MaKore.Services
                     r.Server = ru.Server;
                     r.NickName = ru.NickName;
                     r.UserName = ru.UserName;
+                    _context.Update(r);
                 }
                 _context.SaveChanges();
                 return true;            //204
@@ -78,8 +79,8 @@ namespace MaKore.Services
                 }
                 else
                 {
-                    content = "";
-                    time = "";
+                    content = null;
+                    time = null;
                 }
 
                 return new JsonUser()
@@ -87,7 +88,7 @@ namespace MaKore.Services
                     Id = remoteUser.UserName,
                     Name = remoteUser.NickName,
                     Server = remoteUser.Server,
-                    LastDate = time,
+                    Lastdate = time,
                     Last = content
                 };
             }
@@ -110,8 +111,8 @@ namespace MaKore.Services
                         Id = user.UserName,
                         Name = user.NickName,
                         Server = Consts.localHost,
-                        Last = "",
-                        LastDate = ""
+                        Last = null,
+                        Lastdate = null
                     });
 
                 return sendUsers;
@@ -144,8 +145,8 @@ namespace MaKore.Services
                 }
                 else
                 {
-                    c = "";
-                    time = "";
+                    c = null;
+                    time = null;
                 }
 
 
@@ -155,7 +156,7 @@ namespace MaKore.Services
                         Id = r.UserName,
                         Name = r.NickName,
                         Server = r.Server,
-                        LastDate = time,
+                        Lastdate = time,
                         Last = c
                     });
             }
@@ -175,8 +176,8 @@ namespace MaKore.Services
                     Id = u.UserName,
                     Name = u.NickName,
                     Server = Consts.localHost,
-                    LastDate = "",
-                    Last = ""
+                    Lastdate = null,
+                    Last = null
                 };
             }
             return null;

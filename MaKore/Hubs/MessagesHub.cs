@@ -96,7 +96,6 @@ namespace MaKore.Hubs
         public async Task registerToAllGroup(JsonHubChat register)
         {
             var q = from u in _context.Users
-                    //where u.UserName != register.userName
                     select u;
             if (q.Any())
             {

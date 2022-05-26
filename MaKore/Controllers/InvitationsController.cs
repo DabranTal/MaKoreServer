@@ -31,7 +31,7 @@ namespace MaKore.Controllers
         }
 
         public async Task sendFriend(JsonHubChat immediateChat) {
-            await _hub.Clients.Group(immediateChat.userName).SendAsync("ReciveFriend", immediateChat.userName, immediateChat.nickName, immediateChat.remoteUserName);
+            await _hub.Clients.Group(immediateChat.userName).SendAsync("ReciveFriend", immediateChat.remoteUserName, immediateChat.nickName, immediateChat.userName);
         }
 
         // a different server serfs here, thus no authantication. Someone wants to talk to OUR user

@@ -171,6 +171,7 @@ namespace MaKore.Services
 
         public bool Transfer(string username, string partner, JsonTransfer mpl)
         {
+            bool isSendderLocal = true;
             var q = from conv in _context.Conversations
                     where conv.User.UserName == username && conv.RemoteUser.UserName == partner
                     select conv;
@@ -180,6 +181,7 @@ namespace MaKore.Services
                 q = from conv in _context.Conversations
                     where conv.User.UserName == partner && conv.RemoteUser.UserName == username
                     select conv;
+                isSendderLocal = false;
             }
 
             string newContent;
@@ -206,10 +208,16 @@ namespace MaKore.Services
                 _context.Add(newMessage);
                 _context.SaveChanges();
 
-
                 var q2 = from user in _context.Users
                          where user.UserName == partner
                          select user;
+
+                if (!isSendderLocal)
+                {
+                    q2 = from user in _context.Users
+                             where user.UserName == username
+                             select user;
+                }
 
                 // the remote user is also our client (our user)
                 if (q2.Any())

@@ -86,16 +86,24 @@ namespace MaKore.Controllers
 
         // PUT: /contacts/id
         [HttpPut("contacts/{id}")]
-        public async Task<IActionResult> Put(string contact, [Bind("UserName, NickName, Server")] RemoteUser ru)
+        public async Task<IActionResult> Put(string id, [Bind("name, server")] jsonContactsPut pl)
         {
             string authHeader = Request.Headers["Authorization"];
             authHeader = authHeader.Replace("Bearer ", "");
             string userName = UserNameFromJWT(authHeader, _configuration);
 
+            RemoteUser ru = new RemoteUser()
+            {
+                
+                UserName = id,
+                NickName = pl.name,
+                Server = pl.server
+            };
+
             // WHAT CAN CHANGE ?!?!?! WHAT STAYES THE SAME ?!?!?!
             if (ModelState.IsValid)
             {
-                if (_service.Edit(contact, ru) == true)
+                if (_service.Edit(id, ru) == true)
                 {
                     return StatusCode(201);
                 }
@@ -114,7 +122,7 @@ namespace MaKore.Controllers
 
             if (_service.Delete(userName, id) == true)
             {
-                return StatusCode(201);
+                return StatusCode(204);
             }
             return BadRequest();
 

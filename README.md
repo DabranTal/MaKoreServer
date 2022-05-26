@@ -80,10 +80,12 @@ Since we support **online communication** (using signalR), the message corali wr
 
 #### Notes:
 - We only support text messages now.
-- Searching users in the chat is still available.
+- Searching users in the chat is still available. The search is case-sensitive.
 - All the requirments of signing up to MaKore stay the same.
 - There is one picture (of MaKore) for all users.
-- 
+- We assume that "bearer JWT" and "@microsoft/signalR" packages are already installed on your PC.
+- Please make sure the server is running on "localhost:5018" and the client is running on "localhost:3000".
+- **Please do not store or send important information like real passwords or important text on the server because this application does not take into consideration many considerations that must be taken in the context of the security of the application.**
 
 ### How to Run
 Our project divides into two servers, and thus two repositories. <br />
@@ -102,7 +104,28 @@ As in for this repository, here is the server. You need to run it first in order
     ```
     update-database
     ```
-  
+4. run the server code (from the MaKore.sln)
+    ```
+    Ctrl+F5
+    ```
+5. Clone the Client repository:
+    ```
+    git clone -b ex2 https://github.com/CoralKuta/MaKore
+    ```
+6. Enter the MaKore client folder:
+    ```
+    cd MaKore
+    ```
+7. Install all modules:
+    ```
+    npm install
+    ```
+8. Run the program:
+    ```
+    npm start
+    ```
+9. Sign up and Explore!
+
 ### Developers
 - Tal Dabran 316040898
 - Ido Tavron 316222512

@@ -7,9 +7,9 @@ In addition to the previous part, we used and experienced with: ASP.net and C#, 
 
 ### About the Server
 Our website's server has to be connected in order to be able to use MaKore. <br />
-The server holds a DB with all of MaKore's users, chats information and messages. <br />
-It supports HTTP's GET, POST, PUT and DELETE requesets and returns or updates the relevent inforamtion. <br />
-Besides responding to our clients, the server can also recieve requests from other servers. This way, MaKore's users can chat with other users from different websites that also implement the same API as our server. <br />
+The server holds a database with all of MaKore's users, chats information, and messages. <br />
+It supports HTTP's GET, POST, PUT, and DELETE requests and returns or updates the relevant information. <br />
+Besides responding to our clients, the server can also receive requests from other servers. This way, MaKore's users can chat with other users from different websites that also implement the same API as our server. <br />
 
 Our very first encounter with MVC was the **rating page**.<br />
 You can add a review, edit and delete an existing review, and also go back to the chat if you are a connected user.<br />

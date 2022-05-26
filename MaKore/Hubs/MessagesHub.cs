@@ -93,10 +93,10 @@ namespace MaKore.Hubs
             await Clients.Group(convId).SendAsync("ReciveMessage", immediateMessage.message, immediateMessage.x, immediateMessage.userName);
         }
 
-        public async Task registerToAllGrouop(JsonHubChat register)
+        public async Task registerToAllGroup(JsonHubChat register)
         {
             var q = from u in _context.Users
-                    where u.UserName != register.userName
+                    //where u.UserName != register.userName
                     select u;
             if (q.Any())
             {

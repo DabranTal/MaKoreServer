@@ -142,9 +142,10 @@ namespace MaKore.Controllers
                     x = random
                 };
                 await sendMessage(jh);
-                string reciever = from;
+
+                // triger firebase notification on reciever 
                 var q = from fb in _context.FireBaseMap
-                        where fb.UserName == reciever
+                        where fb.UserName == to
                         select fb;
                 foreach (var fb in q)
                 {

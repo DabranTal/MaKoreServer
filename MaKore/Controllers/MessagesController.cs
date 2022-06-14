@@ -14,10 +14,13 @@ namespace MaKore.Controllers
     {
         public IMessageService _service;
         public IConfiguration _configuration;
+        public MaKoreContext _context;
+
 
         public MessagesController(MaKoreContext context, IConfiguration config)
         {
             _configuration = config;
+            _context = context;
             _service = new MessageService(context);
         }
 
@@ -60,6 +63,15 @@ namespace MaKore.Controllers
 
             if (_service.Create(username, id, message) == true)
             {
+                // triger firebase notification on reciever 
+                var q = from fb in _context.FireBaseMap
+                        where fb.UserName == id
+                        select fb;
+                foreach (var fb in q)
+                {
+                    notifyFireBase(fb.Token);
+
+                }
                 return StatusCode(201);
             }
             return BadRequest();

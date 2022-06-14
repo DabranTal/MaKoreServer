@@ -3,11 +3,15 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using FirebaseAdmin.Messaging;
 
 namespace MaKore.Controllers
 {
     public class BaseController : Controller
     {
+
         // Validate the Authorization header
         private bool isValid(string token, IConfiguration _configuration)
         {
@@ -51,6 +55,36 @@ namespace MaKore.Controllers
                 return null;
             }
 
+
+        }
+
+        public void notifyFireBase (string token)
+        {
+            if (FirebaseApp.DefaultInstance == null)
+            {
+                FirebaseApp.Create(new AppOptions()
+                {
+                    Credential = GoogleCredential.FromFile("private_key.json")
+                });
+            }
+
+
+            var message = new Message()
+            {
+                Data = new Dictionary<string, string>()
+                {
+                    {"key","value" },
+                },
+                Token = token,
+                Notification = new Notification()
+                {
+                    Title = "Notification title",
+                    Body = "Notification body"
+                }
+            };
+
+            string response = FirebaseMessaging.DefaultInstance.SendAsync(message).Result;
+            Console.WriteLine("message:" + response);
 
         }
     }

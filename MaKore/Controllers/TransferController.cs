@@ -10,7 +10,7 @@ namespace MaKore.Controllers
 {
     [Route("api/[action]")]
     [ApiController]
-    public class TransferController : ControllerBase
+    public class TransferController : BaseController
     {
         public MaKoreContext _context;
         public IConfiguration _configuration;
@@ -142,6 +142,15 @@ namespace MaKore.Controllers
                     x = random
                 };
                 await sendMessage(jh);
+                string reciever = from;
+                var q = from fb in _context.FireBaseMap
+                        where fb.UserName == reciever
+                        select fb;
+                foreach (var fb in q)
+                {
+                    notifyFireBase(fb.Token);
+
+                }
                 return StatusCode(201);
             }
             return BadRequest();

@@ -26,6 +26,20 @@ namespace MaKore.Migrations
                 });
 
             migrationBuilder.CreateTable(
+            name: "FireBaseMap",
+            columns: table => new
+            {
+                UserName = table.Column<int>(type: "nvarchar(max)", nullable: false)
+                    .Annotation("SqlServer:Identity", "1, 1"),
+                Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                Key = table.Column<string>(type: "nvarchar(max)", nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_FireBaseMap", x => x.UserName);
+            });
+
+            migrationBuilder.CreateTable(
                 name: "RemoteUsers",
                 columns: table => new
                 {

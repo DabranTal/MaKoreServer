@@ -37,5 +37,6 @@ public class MaKoreContext : DbContext
     public DbSet<Conversation> Conversations { get; set; }
     public DbSet<RemoteUser> RemoteUsers { get; set; }
     public DbSet<Rating> Rating { get; set; }
+    public DbSet<FireBaseMap> FireBaseMap { get; set; }
 
 }

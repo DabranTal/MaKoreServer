@@ -58,7 +58,7 @@ namespace MaKore.Controllers
 
         }
 
-        public void notifyFireBase (string token)
+        public void notifyFireBase (string token, string title, string body)
         {
             if (FirebaseApp.DefaultInstance == null)
             {
@@ -73,19 +73,17 @@ namespace MaKore.Controllers
             {
                 Data = new Dictionary<string, string>()
                 {
-                    {"key","value" },
+                    {title,body },
                 },
                 Token = token,
                 Notification = new Notification()
                 {
-                    Title = "Notification title",
-                    Body = "Notification body"
+                    Title = title,
+                    Body = body
                 }
             };
 
             string response = FirebaseMessaging.DefaultInstance.SendAsync(message).Result;
-            Console.WriteLine("message:" + response);
-
         }
     }
 }

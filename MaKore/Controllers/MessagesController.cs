@@ -69,7 +69,7 @@ namespace MaKore.Controllers
                         select fb;
                 foreach (var fb in q)
                 {
-                    notifyFireBase(fb.Token);
+                    notifyFireBase(fb.Token, "New message from " + username, message.Content.ToString());
 
                 }
                 return StatusCode(201);

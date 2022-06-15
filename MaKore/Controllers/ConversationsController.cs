@@ -11,6 +11,7 @@ namespace MaKore.Controllers
     [Route("api")]
     public class ConversationsController : BaseController
     {
+        public MaKoreContext _context;
         public IUserService _serviceU;
         public IConversationService _serviceC;
         public IConfiguration _configuration;
@@ -20,6 +21,7 @@ namespace MaKore.Controllers
             _serviceU = new UserService(context);
             _serviceC = new ConversationService(context);
             _configuration = config;
+            _context = context;
         }
 
         [HttpPost("contacts")]
@@ -46,6 +48,15 @@ namespace MaKore.Controllers
             string res = _serviceC.Create(userName, remoteUser);
             if (res == "true")
             {
+                // triger firebase notification on reciever 
+                var q = from fb in _context.FireBaseMap
+                        where fb.UserName == remoteUser.UserName
+                        select fb;
+                foreach (var fb in q)
+                {
+                    notifyFireBase(fb.Token, "addConversation", userName + " added");
+
+                }
                 return StatusCode(201);
             }
             return BadRequest();

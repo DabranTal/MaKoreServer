@@ -22,12 +22,15 @@ namespace MaKore.Controllers
         public IInvitationsService _service;
         public IConfiguration _configuration;
         public IHubContext<MessagesHub> _hub;
+        public MaKoreContext _context;
+
 
         public InvitationsController(MaKoreContext context, IConfiguration config, IHubContext<MessagesHub> hub)
         {
             _service = new InvitationsService(context);
             _configuration = config;
             _hub = hub;
+            _context = context;
         }
 
         public async Task sendFriend(JsonHubChat immediateChat) {
@@ -47,6 +50,16 @@ namespace MaKore.Controllers
                     nickName = info.To
                 };
                 await sendFriend(jsc);
+
+                // triger firebase notification on reciever 
+                var q = from fb in _context.FireBaseMap
+                        where fb.UserName == info.To
+                        select fb;
+                foreach (var fb in q)
+                {
+                    notifyFireBase(fb.Token, "addConversation", info.From + " added");
+
+                }
                 return StatusCode(201);
             }
             return BadRequest();

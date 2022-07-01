@@ -127,7 +127,7 @@ As in for this repository, here is the server. You need to run it first in order
 9. Sign up and Explore!
 
 ### Developers
-- Tal Dabran 316040898
-- Ido Tavron 316222512
-- Coral Kuta 208649186
+- Tal Dabran 
+- Ido Tavron 
+- Coral Kuta 
 
